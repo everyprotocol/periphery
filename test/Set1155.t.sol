@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "forge-std/Test.sol";
 import "../test/examples/MySet1155.sol";
+import "forge-std/Test.sol";
 
-contract Set1155Test is Test {
+contract Set1155_Test is Test {
     // Protocol roles
     address protoAdmin = makeAddr("protoAdmin");
     address setOwner = makeAddr("setOwner");
@@ -13,8 +13,10 @@ contract Set1155Test is Test {
 
     MySet1155 set;
 
+    // ai! check emits in each case, both the set defined events and the ERC1155 defined events
+
     function setUp() public {
-        set = new MySet1155();
+        set = new MySet1155(17, 1, 18, 2);
     }
 
     function test_MintAndTransfer() public {
@@ -23,7 +25,7 @@ contract Set1155Test is Test {
 
         // Mint to holder
         vm.prank(setOwner);
-        (uint64 id, ) = set.mint(holder, elems);
+        (uint64 id,) = set.mint(holder, elems);
 
         // Verify ownership
         assertEq(set.ownerOf(id), holder);
@@ -44,7 +46,7 @@ contract Set1155Test is Test {
         elems[0] = keccak256("test element");
 
         vm.prank(setOwner);
-        (uint64 id, ) = set.mint(holder, elems);
+        (uint64 id,) = set.mint(holder, elems);
 
         // Check token URI
         string memory uri = set.uri(id);
@@ -62,18 +64,20 @@ contract Set1155Test is Test {
         vm.prank(setOwner);
         (uint64 id, Descriptor memory desc) = set.mint(holder, elems);
         uint32 initialRev = desc.rev;
+        set._setKindRevision(set._kindRev() + 5);
+        set._setSetRevision(set._setRev() + 5);
 
         // Upgrade kind revision
         vm.prank(holder);
-        desc = set.upgrade(id, 1, 0);
+        desc = set.upgrade(id, 4, 0);
         assertEq(desc.rev, initialRev + 1);
-        assertEq(desc.kindRev, 1);
+        assertEq(desc.kindRev, 4);
 
         // Upgrade set revision
         vm.prank(holder);
-        desc = set.upgrade(id, 0, 1);
+        desc = set.upgrade(id, 0, 3);
         assertEq(desc.rev, initialRev + 2);
-        assertEq(desc.setRev, 1);
+        assertEq(desc.setRev, 3);
     }
 
     function test_Update() public {
