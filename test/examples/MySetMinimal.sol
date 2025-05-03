@@ -11,10 +11,10 @@ contract MySetMinimal is Set {
     error UnsupportedSetRevision(); // setRev0 > _setRev
 
     uint64 internal _minted;
-    uint64 internal _kindId;
-    uint32 internal _kindRev;
-    uint64 internal _setId;
-    uint32 internal _setRev;
+    uint64 public _kindId;
+    uint32 public _kindRev;
+    uint64 public _setId;
+    uint32 public _setRev;
 
     constructor(uint64 kindId, uint32 kindRev, uint64 setId, uint32 setRev) {
         _kindId = kindId;
