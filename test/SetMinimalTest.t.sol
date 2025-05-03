@@ -29,7 +29,9 @@ contract SetMinimalTest is Test {
         vm.prank(user);
         (uint64 id,) = set.mint(user, elems);
 
-        bytes32[] memory newElems = [bytes32("new1"), bytes32("new2")];
+        bytes32[] memory newElems = new bytes32[](2);
+        newElems[0] = bytes32("new1");
+        newElems[1] = bytes32("new2");
         vm.expectEmit(true, true, true, true);
         emit ISet.Updated(id, Descriptor(0, 2, 1, 2, 17, 18), newElems);
 
