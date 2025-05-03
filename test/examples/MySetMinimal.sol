@@ -29,7 +29,10 @@ contract MySetMinimal is Set {
         _postCreate(id, desc, elems, to);
     }
 
-    // ai! add a update method
+    function update(uint64 id, bytes32[] memory elems) external onlyObjectOwner(id) returns (Descriptor memory desc) {
+        desc = _update(id, elems);
+        _postUpdate(id, desc, elems);
+    }
 
     function _preCreate(uint64 id0, bytes32[] memory elems, address owner)
         internal
