@@ -47,8 +47,9 @@ contract SetMinimalTest is Test {
         vm.prank(user);
         (uint64 id,) = set.mint(user, elems);
 
+        Descriptor memory expectedDesc = Descriptor(0, 2, 2, 3, 17, 18);
         vm.expectEmit(true, true, true, true);
-        emit ISet.Upgraded(id, Descriptor(0, 2, 2, 3, 17, 18));
+        emit ISet.Upgraded(id, expectedDesc);
 
         vm.prank(user);
         Descriptor memory desc = set.upgrade(id, 2, 3);
@@ -72,7 +73,7 @@ contract SetMinimalTest is Test {
         assertEq(set.ownerOf(id), newOwner, "Ownership should transfer");
     }
 
-    function test_Uri() public {
+    function test_Uri() public view {
         string memory uri = set.uri();
         assertEq(uri, "http://image.local/mysetminimal/{id}/{rev}/meta", "URI should match");
     }
