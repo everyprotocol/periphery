@@ -3,6 +3,13 @@ pragma solidity ^0.8.13;
 import "./examples/MySetMinimal.sol";
 import "forge-std/Test.sol";
 
+struct Descriptor {
+    uint64 kindId;
+    uint32 kindRev;
+    uint64 setId;
+    uint32 setRev;
+}
+
 contract SetMinimalTest is Test {
     MySetMinimal set;
     address owner = makeAddr("owner");
