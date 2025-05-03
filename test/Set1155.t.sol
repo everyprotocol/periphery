@@ -13,8 +13,7 @@ contract Set1155_Test is Test {
 
     MySet1155 set;
 
-    // ai! check emits in each case, both the set defined events and the ERC1155 defined events
-
+    // ai! use full qualified event name, e.g., ISet.Created, IERC1155.Transfer
     function setUp() public {
         set = new MySet1155(17, 1, 18, 2);
     }
