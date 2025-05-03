@@ -90,7 +90,7 @@ contract Set1155Test is Test {
         newElems[1] = keccak256("new element 2");
 
         vm.prank(holder);
-        desc = set.update(id, newElems);
+        desc = set.update(id, newElems); // This should now work with the added update function
         assertEq(desc.rev, initialRev + 1);
 
         // Verify elements updated

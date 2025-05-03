@@ -28,14 +28,14 @@ contract MySet1155 is SetERC1155Compat {
         returns (uint64 id, Descriptor memory desc)
     {
         id = ++_minted;
-        desc = Descriptor({
-            rev: 1,
-            kindId: _kindId,
-            kindRev: _kindRev,
-            setId: _setId,
-            setRev: _setRev,
-            data: keccak256(abi.encodePacked(block.timestamp, id))
-        });
+        desc = Descriptor(
+            1,        // rev
+            _kindId,  // kindId
+            _kindRev, // kindRev
+            _setId,   // setId
+            _setRev,  // setRev
+            keccak256(abi.encodePacked(block.timestamp, id)) // data
+        );
     }
 
     function _kindRevision(uint64 kindId, uint32 kindRev0) internal view virtual override returns (uint32) {
@@ -60,6 +60,11 @@ contract MySet1155 is SetERC1155Compat {
 
     function _setURI() internal view virtual override returns (string memory) {
         return "https://example.com/myset1155/contract";
+    }
+
+    function update(uint64 id, bytes32[] memory elems) external onlyObjectOwner(id) returns (Descriptor memory desc) {
+        desc = _update(id, elems);
+        _postUpdate(id, desc, elems);
     }
 
     // Helper to convert uint to string
