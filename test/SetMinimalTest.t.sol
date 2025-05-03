@@ -15,7 +15,7 @@ contract SetMinimalTest is Test {
 
     function test_Mint() public {
         vm.prank(user);
-        (uint64 id, MySetMinimal.Descriptor memory desc) = set.mint(user, testElements);
+        (uint64 id, Descriptor memory desc) = set.mint(user, testElements);
 
         assertEq(id, 1, "First mint should have ID 1");
         assertEq(desc.kindId, set._kindId(), "Kind ID should match");
