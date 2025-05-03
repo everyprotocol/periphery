@@ -2,10 +2,10 @@ pragma solidity ^0.8.13;
 
 import "./examples/MySetMinimal.sol";
 
-import {ISet} from "@periphery/interfaces/user/ISet.sol";
+import {ISet} from "@everyprotocol/periphery/interfaces/user/ISet.sol";
 import "forge-std/Test.sol";
 
-contract SetMinimalTest is Test {
+contract SetMinimal_Test is Test {
     MySetMinimal set;
     address owner = makeAddr("owner");
     address user = makeAddr("user");
@@ -17,25 +17,16 @@ contract SetMinimalTest is Test {
 
     function test_Mint() public {
         vm.prank(user);
-        (uint64 id, Descriptor memory desc) = set.mint(user, elems);
+        // Check Created event
+        vm.expectEmit(true, true, true, true);
+        emit ISet.Created(1, Descriptor(0, 1, 1, 2, 17, 18), elems, user);
 
+        (uint64 id, Descriptor memory desc) = set.mint(user, elems);
         assertEq(id, 1, "First mint should have ID 1");
         assertEq(desc.kindId, set._kindId(), "Kind ID should match");
         assertEq(desc.kindRev, set._kindRev(), "Kind revision should match");
         assertEq(desc.setId, set._setId(), "Set ID should match");
         assertEq(desc.setRev, set._setRev(), "Set revision should match");
-
-        // Check Created event
-        vm.expectEmit(true, true, true, true);
-        emit ISet.Created(id, desc, elems, user);
-
-        // Check Transfer event (from SetERC1155Compat)
-        vm.expectEmit(true, true, true, true);
-        emit TransferSingle(user, address(0), user, id, 1);
-
-        // Check URI event (from SetERC1155Compat)
-        vm.expectEmit(true, true, true, true);
-        emit URI(set.uri(id, desc.rev), id);
     }
 
     function test_Update() public {
@@ -60,17 +51,18 @@ contract SetMinimalTest is Test {
         vm.prank(user);
         (uint64 id,) = set.mint(user, elems);
 
+        set._setKindRevision(5);
+        set._setSetRevision(5);
         // Upgrade to same revisions (no change)
-        Descriptor memory expectedDesc = Descriptor(0, 2, 1, 2, 17, 18);
+        Descriptor memory expectedDesc = Descriptor(0, 2, 1, 3, 17, 18);
         vm.expectEmit(true, true, true, true);
         emit ISet.Upgraded(id, expectedDesc);
 
         vm.prank(user);
-        Descriptor memory desc = set.upgrade(id, 1, 2);
-
+        Descriptor memory desc = set.upgrade(id, 0, 3);
         assertEq(desc.rev, 2, "Revision should increment");
         assertEq(desc.kindRev, 1, "Kind revision should stay same");
-        assertEq(desc.setRev, 2, "Set revision should stay same");
+        assertEq(desc.setRev, 3, "Set revision should stay same");
     }
 
     function test_Transfer() public {

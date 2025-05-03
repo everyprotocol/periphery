@@ -2,9 +2,8 @@
 pragma solidity ^0.8.28;
 
 import "../test/examples/MySet1155.sol";
-
+import {ISet} from "@everyprotocol/periphery/interfaces/user/ISet.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
-import {ISet} from "@periphery/interfaces/user/ISet.sol";
 import "forge-std/Test.sol";
 
 contract Set1155_Test is Test {

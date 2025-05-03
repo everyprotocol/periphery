@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {Descriptor, Set} from "@periphery/sets/Set.sol";
+import {Descriptor, Set} from "@everyprotocol/periphery/sets/Set.sol";
 
 contract MySetMinimal is Set {
     error MintSpecificIdUnsupported();
@@ -61,5 +61,13 @@ contract MySetMinimal is Set {
 
     function _uri() internal view virtual override returns (string memory) {
         return "http://image.local/mysetminimal/{id}/{rev}/meta";
+    }
+
+    function _setKindRevision(uint32 newRev) external {
+        _kindRev = newRev;
+    }
+
+    function _setSetRevision(uint32 newRev) external {
+        _setRev = newRev;
     }
 }

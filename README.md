@@ -1,66 +1,11 @@
-## Foundry
+# Every Protocol Periphery
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Every Protocol enables intuitive, collaborative, secure, and rewarding onchain co-creation.
 
-Foundry consists of:
+Every Protocol introduces the Object Token (or simply, object) — a next-gen token with structure, semantics, and interoperability. Each object has a kind, is minted from a set, and is composed of elements. Objects can interact with one another through relations defined at the kind level. Every aspect of an object can be created or developed by anyone, unlocking true onchain collaboration.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+This repository hosts periphery contracts of the Every Protocol.
 
-## Documentation
+## License
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Every Protocol Periphery is licensed under the MIT License (MIT), See [LICENSE](https://github.com/everyprotocol/periphery/blob/main/LICENSE).

@@ -1,6 +1,16 @@
 [profile.default]
-src = "src"
+src = "contracts"
 out = "out"
 libs = ["lib"]
+via_ir = true
+solc-version = "0.8.28"
 
+[fmt]
+sort_imports = true
+auto_detect_license = true
+
+[doc]
+src = "contracts"
+title = "Every Protocol – Periphery"
+repository = "https://github.com/everyprotocol/periphery"
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
