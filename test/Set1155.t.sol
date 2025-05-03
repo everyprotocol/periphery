@@ -133,5 +133,74 @@ contract Set1155_Test is Test {
         assertEq(storedElems[1], newElems[1]);
     }
 
-    // ai! add tests for erc1155 required methods, check events emitted
+    function test_ERC1155_BatchTransfer() public {
+        bytes32[] memory elems = new bytes32[](1);
+        elems[0] = keccak256("test element");
+
+        // Mint two tokens to holder
+        vm.prank(setOwner);
+        (uint64 id1,) = set.mint(holder, elems);
+        vm.prank(setOwner);
+        (uint64 id2,) = set.mint(holder, elems);
+
+        // Prepare batch transfer
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = id1;
+        ids[1] = id2;
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 1;
+        amounts[1] = 1;
+
+        // Transfer batch
+        vm.prank(holder);
+        vm.expectEmit(true, true, true, true);
+        emit ISet.Transferred(id1, holder, caller);
+        vm.expectEmit(true, true, true, true);
+        emit ISet.Transferred(id2, holder, caller);
+        vm.expectEmit(true, true, true, true);
+        emit IERC1155.TransferBatch(holder, holder, caller, ids, amounts);
+        set.safeBatchTransferFrom(holder, caller, ids, amounts, "");
+
+        // Verify new owners
+        assertEq(set.ownerOf(id1), caller);
+        assertEq(set.ownerOf(id2), caller);
+    }
+
+    function test_ERC1155_Approval() public {
+        // Check initial approval state
+        assertFalse(set.isApprovedForAll(holder, caller));
+
+        // Set approval
+        vm.prank(holder);
+        vm.expectEmit(true, true, true, true);
+        emit IERC1155.ApprovalForAll(holder, caller, true);
+        set.setApprovalForAll(caller, true);
+
+        // Verify approval
+        assertTrue(set.isApprovedForAll(holder, caller));
+    }
+
+    function test_ERC1155_BalanceOfBatch() public {
+        bytes32[] memory elems = new bytes32[](1);
+        elems[0] = keccak256("test element");
+
+        // Mint tokens to different accounts
+        vm.prank(setOwner);
+        (uint64 id1,) = set.mint(holder, elems);
+        vm.prank(setOwner);
+        (uint64 id2,) = set.mint(caller, elems);
+
+        // Prepare batch query
+        address[] memory accounts = new address[](2);
+        accounts[0] = holder;
+        accounts[1] = caller;
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = id1;
+        ids[1] = id2;
+
+        // Check balances
+        uint256[] memory balances = set.balanceOfBatch(accounts, ids);
+        assertEq(balances[0], 1);
+        assertEq(balances[1], 1);
+    }
 }
