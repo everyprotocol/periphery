@@ -29,6 +29,8 @@ contract MySetMinimal is Set {
         _postCreate(id, desc, elems, to);
     }
 
+    // ai! add a update method
+
     function _preCreate(uint64 id0, bytes32[] memory elems, address owner)
         internal
         virtual
