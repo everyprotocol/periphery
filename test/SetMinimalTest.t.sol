@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 import "./examples/MySetMinimal.sol";
 import "forge-std/Test.sol";
 
-contract SetMinimalTest is Test {
+contract Interoperable_Test is Test {
     MySetMinimal set;
     address owner = makeAddr("owner");
     address user = makeAddr("user");
