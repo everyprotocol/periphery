@@ -55,7 +55,7 @@ contract MySet1155 is SetERC1155Compat {
     }
 
     function _uri(uint64 id, uint32 rev) internal view virtual override returns (string memory) {
-        return string(abi.encodePacked("https://example.com/myset1155/", toString(id), "/", toString(rev), "/meta");
+        return string(abi.encodePacked("https://example.com/myset1155/", toString(id), "/", toString(rev), "/meta"));
     }
 
     function _setURI() internal view virtual override returns (string memory) {
