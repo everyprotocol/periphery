@@ -2,6 +2,7 @@ pragma solidity ^0.8.13;
 
 import "./examples/MySetMinimal.sol";
 import "forge-std/Test.sol";
+import {Updated, Upgraded, Transferred} from "@periphery/sets/Set.sol";
 
 contract SetMinimalTest is Test {
     MySetMinimal set;
