@@ -2,8 +2,7 @@ pragma solidity ^0.8.13;
 
 import "./examples/MySetMinimal.sol";
 import "forge-std/Test.sol";
-// ai! import ISet, then ISet.Transferred to use the event
-import {Transferred, Updated, Upgraded} from "@periphery/interfaces/user/ISet.sol";
+import {ISet} from "@periphery/interfaces/user/ISet.sol";
 
 contract SetMinimalTest is Test {
     MySetMinimal set;
@@ -32,7 +31,7 @@ contract SetMinimalTest is Test {
 
         bytes32[] memory newElems = [bytes32("new1"), bytes32("new2")];
         vm.expectEmit(true, true, true, true);
-        emit Updated(id, Descriptor(0, 2, 1, 2, 17, 18), newElems);
+        emit ISet.Updated(id, Descriptor(0, 2, 1, 2, 17, 18), newElems);
 
         vm.prank(user);
         Descriptor memory desc = set.update(id, newElems);
@@ -47,7 +46,7 @@ contract SetMinimalTest is Test {
         (uint64 id,) = set.mint(user, elems);
 
         vm.expectEmit(true, true, true, true);
-        emit Upgraded(id, Descriptor(0, 2, 2, 3, 17, 18));
+        emit ISet.Upgraded(id, Descriptor(0, 2, 2, 3, 17, 18));
 
         vm.prank(user);
         Descriptor memory desc = set.upgrade(id, 2, 3);
@@ -63,7 +62,7 @@ contract SetMinimalTest is Test {
 
         address newOwner = makeAddr("newOwner");
         vm.expectEmit(true, true, true, true);
-        emit Transferred(id, user, newOwner);
+        emit ISet.Transferred(id, user, newOwner);
 
         vm.prank(user);
         set.transfer(id, newOwner);
