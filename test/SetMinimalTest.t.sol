@@ -1,8 +1,9 @@
 pragma solidity ^0.8.13;
 
 import "./examples/MySetMinimal.sol";
-import "forge-std/Test.sol";
+
 import {ISet} from "@periphery/interfaces/user/ISet.sol";
+import "forge-std/Test.sol";
 
 contract SetMinimalTest is Test {
     MySetMinimal set;
@@ -23,6 +24,8 @@ contract SetMinimalTest is Test {
         assertEq(desc.kindRev, set._kindRev(), "Kind revision should match");
         assertEq(desc.setId, set._setId(), "Set ID should match");
         assertEq(desc.setRev, set._setRev(), "Set revision should match");
+
+        // ai! check events
     }
 
     function test_Update() public {
@@ -51,10 +54,10 @@ contract SetMinimalTest is Test {
         Descriptor memory expectedDesc = Descriptor(0, 2, 1, 2, 17, 18);
         vm.expectEmit(true, true, true, true);
         emit ISet.Upgraded(id, expectedDesc);
-        
+
         vm.prank(user);
         Descriptor memory desc = set.upgrade(id, 1, 2);
-        
+
         assertEq(desc.rev, 2, "Revision should increment");
         assertEq(desc.kindRev, 1, "Kind revision should stay same");
         assertEq(desc.setRev, 2, "Set revision should stay same");
