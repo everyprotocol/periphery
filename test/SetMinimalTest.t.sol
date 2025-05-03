@@ -1,7 +1,7 @@
 pragma solidity ^0.8.13;
 
+import "./examples/MySetMinimal.sol";
 import "forge-std/Test.sol";
-import "../examples/MySetMinimal.sol";
 
 contract SetMinimalTest is Test {
     MySetMinimal set;
@@ -16,7 +16,7 @@ contract SetMinimalTest is Test {
     function test_Mint() public {
         vm.prank(user);
         (uint64 id, MySetMinimal.Descriptor memory desc) = set.mint(user, testElements);
-        
+
         assertEq(id, 1, "First mint should have ID 1");
         assertEq(desc.kindId, set._kindId(), "Kind ID should match");
         assertEq(desc.kindRev, set._kindRev(), "Kind revision should match");
