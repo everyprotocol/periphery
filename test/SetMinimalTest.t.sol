@@ -3,13 +3,6 @@ pragma solidity ^0.8.13;
 import "./examples/MySetMinimal.sol";
 import "forge-std/Test.sol";
 
-struct Descriptor {
-    uint64 kindId;
-    uint32 kindRev;
-    uint64 setId;
-    uint32 setRev;
-}
-
 contract SetMinimalTest is Test {
     MySetMinimal set;
     address owner = makeAddr("owner");
@@ -25,10 +18,10 @@ contract SetMinimalTest is Test {
         (uint64 id, Descriptor memory desc) = set.mint(user, testElements);
 
         assertEq(id, 1, "First mint should have ID 1");
-        assertEq(desc.kindId, set._kindId(), "Kind ID should match");
-        assertEq(desc.kindRev, set._kindRev(), "Kind revision should match");
-        assertEq(desc.setId, set._setId(), "Set ID should match");
-        assertEq(desc.setRev, set._setRev(), "Set revision should match");
+        assertEq(desc.kindId, set._kindId, "Kind ID should match");
+        assertEq(desc.kindRev, set._kindRev, "Kind revision should match");
+        assertEq(desc.setId, set._setId, "Set ID should match");
+        assertEq(desc.setRev, set._setRev, "Set revision should match");
     }
 
     function test_UnsupportedKindId() public {
