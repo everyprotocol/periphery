@@ -10,7 +10,7 @@ contract SetMinimalTest is Test {
     bytes32[] testElements = [bytes32("elem1"), bytes32("elem2")];
 
     function setUp() public {
-        set = new MySetMinimal();
+        set = new MySetMinimal(17, 1, 18, 2);
     }
 
     function test_Mint() public {

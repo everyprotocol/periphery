@@ -16,12 +16,11 @@ contract MySetMinimal is Set {
     uint64 internal _setId;
     uint32 internal _setRev;
 
-    // ai! pass args instead of hardcoded
-    constructor() {
-        _kindId = 17;
-        _kindRev = 1;
-        _setId = 18;
-        _setRev = 2;
+    constructor(uint64 kindId, uint32 kindRev, uint64 setId, uint32 setRev) {
+        _kindId = kindId;
+        _kindRev = kindRev;
+        _setId = setId;
+        _setRev = setRev;
     }
 
     function mint(address to, bytes32[] memory elems) external returns (uint64 id, Descriptor memory desc) {
