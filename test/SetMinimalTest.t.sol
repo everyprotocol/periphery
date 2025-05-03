@@ -25,7 +25,17 @@ contract SetMinimalTest is Test {
         assertEq(desc.setId, set._setId(), "Set ID should match");
         assertEq(desc.setRev, set._setRev(), "Set revision should match");
 
-        // ai! check events
+        // Check Created event
+        vm.expectEmit(true, true, true, true);
+        emit ISet.Created(id, desc, elems, user);
+
+        // Check Transfer event (from SetERC1155Compat)
+        vm.expectEmit(true, true, true, true);
+        emit TransferSingle(user, address(0), user, id, 1);
+
+        // Check URI event (from SetERC1155Compat)
+        vm.expectEmit(true, true, true, true);
+        emit URI(set.uri(id, desc.rev), id);
     }
 
     function test_Update() public {
