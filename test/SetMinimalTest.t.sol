@@ -2,6 +2,7 @@ pragma solidity ^0.8.13;
 
 import "./examples/MySetMinimal.sol";
 import "forge-std/Test.sol";
+// ai! import ISet, then ISet.Transferred to use the event
 import {Transferred, Updated, Upgraded} from "@periphery/interfaces/user/ISet.sol";
 
 contract SetMinimalTest is Test {
