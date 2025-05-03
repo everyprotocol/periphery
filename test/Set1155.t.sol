@@ -3,6 +3,8 @@ pragma solidity ^0.8.28;
 
 import "../test/examples/MySet1155.sol";
 import "forge-std/Test.sol";
+import {ISet} from "@periphery/interfaces/user/ISet.sol";
+import {IERC1155, IERC1155MetadataURI} from "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
 
 contract Set1155_Test is Test {
     // Protocol roles
@@ -25,9 +27,9 @@ contract Set1155_Test is Test {
         // Mint to holder
         vm.prank(setOwner);
         vm.expectEmit(true, true, true, true);
-        emit Created(0, Descriptor(0, 1, 1, 2, 17, 18), elems, holder);
+        emit ISet.Created(0, Descriptor(0, 1, 1, 2, 17, 18), elems, holder);
         vm.expectEmit(true, true, true, true);
-        emit TransferSingle(setOwner, address(0), holder, 1, 1);
+        emit IERC1155.TransferSingle(setOwner, address(0), holder, 1, 1);
         (uint64 id,) = set.mint(holder, elems);
 
         // Verify ownership
@@ -37,9 +39,9 @@ contract Set1155_Test is Test {
         // Transfer to caller
         vm.prank(holder);
         vm.expectEmit(true, true, true, true);
-        emit Transferred(id, holder, caller);
+        emit ISet.Transferred(id, holder, caller);
         vm.expectEmit(true, true, true, true);
-        emit TransferSingle(holder, holder, caller, id, 1);
+        emit IERC1155.TransferSingle(holder, holder, caller, id, 1);
         set.safeTransferFrom(holder, caller, id, 1, "");
 
         // Verify new owner
@@ -54,11 +56,11 @@ contract Set1155_Test is Test {
 
         vm.prank(setOwner);
         vm.expectEmit(true, true, true, true);
-        emit Created(0, Descriptor(0, 1, 1, 2, 17, 18), elems, holder);
+        emit ISet.Created(0, Descriptor(0, 1, 1, 2, 17, 18), elems, holder);
         vm.expectEmit(true, true, true, true);
-        emit TransferSingle(setOwner, address(0), holder, 1, 1);
+        emit IERC1155.TransferSingle(setOwner, address(0), holder, 1, 1);
         vm.expectEmit(true, true, true, true);
-        emit URI("https://example.com/myset1155/1/1/meta", 1);
+        emit IERC1155MetadataURI.URI("https://example.com/myset1155/1/1/meta", 1);
         (uint64 id,) = set.mint(holder, elems);
 
         // Check token URI
@@ -83,9 +85,9 @@ contract Set1155_Test is Test {
         // Upgrade kind revision
         vm.prank(holder);
         vm.expectEmit(true, true, true, true);
-        emit Upgraded(id, Descriptor(initialRev + 1, 4, 1, 2, 17, 18));
+        emit ISet.Upgraded(id, Descriptor(initialRev + 1, 4, 1, 2, 17, 18));
         vm.expectEmit(true, true, true, true);
-        emit URI("https://example.com/myset1155/1/2/meta", 1);
+        emit IERC1155MetadataURI.URI("https://example.com/myset1155/1/2/meta", 1);
         desc = set.upgrade(id, 4, 0);
         assertEq(desc.rev, initialRev + 1);
         assertEq(desc.kindRev, 4);
@@ -93,9 +95,9 @@ contract Set1155_Test is Test {
         // Upgrade set revision
         vm.prank(holder);
         vm.expectEmit(true, true, true, true);
-        emit Upgraded(id, Descriptor(initialRev + 2, 4, 1, 3, 17, 18));
+        emit ISet.Upgraded(id, Descriptor(initialRev + 2, 4, 1, 3, 17, 18));
         vm.expectEmit(true, true, true, true);
-        emit URI("https://example.com/myset1155/1/3/meta", 1);
+        emit IERC1155MetadataURI.URI("https://example.com/myset1155/1/3/meta", 1);
         desc = set.upgrade(id, 0, 3);
         assertEq(desc.rev, initialRev + 2);
         assertEq(desc.setRev, 3);
@@ -116,9 +118,9 @@ contract Set1155_Test is Test {
 
         vm.prank(holder);
         vm.expectEmit(true, true, true, true);
-        emit Updated(id, Descriptor(initialRev + 1, 1, 1, 2, 17, 18), newElems);
+        emit ISet.Updated(id, Descriptor(initialRev + 1, 1, 1, 2, 17, 18), newElems);
         vm.expectEmit(true, true, true, true);
-        emit URI("https://example.com/myset1155/1/2/meta", 1);
+        emit IERC1155MetadataURI.URI("https://example.com/myset1155/1/2/meta", 1);
         desc = set.update(id, newElems);
         assertEq(desc.rev, initialRev + 1);
 
