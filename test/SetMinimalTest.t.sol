@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 import "./examples/MySetMinimal.sol";
 import "forge-std/Test.sol";
 
-contract Interoperable_Test is Test {
+contract SetMinimalTest is Test {
     MySetMinimal set;
     address owner = makeAddr("owner");
     address user = makeAddr("user");
@@ -23,6 +23,8 @@ contract Interoperable_Test is Test {
         assertEq(desc.setId, set._setId(), "Set ID should match");
         assertEq(desc.setRev, set._setRev(), "Set revision should match");
     }
+
+    // ai! add tests for update, upgrade, transfer, check there return values and events emitted
 
     function test_Uri() public {
         string memory uri = set.uri();
