@@ -6,52 +6,52 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /**
  * @title ISet
- * @notice Interface for set contracts
+ * @notice Minimal interface for set contracts
  */
 interface ISet is IERC165 {
     // --- Events ---
 
     /**
      * @notice Emitted when a new object is created
-     * @param id ID of the object
-     * @param desc Descriptor of the object
+     * @param id Object ID
+     * @param od Object descriptor
      * @param elems Elements of the object
-     * @param owner Initial owner of the object
+     * @param owner Initial owner
      */
-    event Created(uint64 id, Descriptor desc, bytes32[] elems, address owner);
+    event Created(uint64 id, Descriptor od, bytes32[] elems, address owner);
 
     /**
      * @notice Emitted when an object is updated
-     * @param id ID of the object
-     * @param desc Updated descriptor
+     * @param id Object ID
+     * @param od Updated descriptor
      * @param elems Updated elements
      */
-    event Updated(uint64 id, Descriptor desc, bytes32[] elems);
+    event Updated(uint64 id, Descriptor od, bytes32[] elems);
 
     /**
      * @notice Emitted when an object is upgraded
-     * @param id ID of the object
-     * @param desc Descriptor after upgrade
+     * @param id Object ID
+     * @param od Descriptor after upgrade
      */
-    event Upgraded(uint64 id, Descriptor desc);
+    event Upgraded(uint64 id, Descriptor od);
 
     /**
-     * @notice Emitted when an object is touched
-     * @param id ID of the object
-     * @param desc Latest descriptor
+     * @notice Emitted when an object is touched (bumped without content change)
+     * @param id Object ID
+     * @param od Latest descriptor
      */
-    event Touched(uint64 id, Descriptor desc);
+    event Touched(uint64 id, Descriptor od);
 
     /**
      * @notice Emitted when an object is destroyed
-     * @param id ID of the object
-     * @param desc Descriptor before destruction
+     * @param id Object ID
+     * @param od Descriptor before destruction
      */
-    event Destroyed(uint64 id, Descriptor desc);
+    event Destroyed(uint64 id, Descriptor od);
 
     /**
      * @notice Emitted when ownership is transferred
-     * @param id ID of the object
+     * @param id Object ID
      * @param from Previous owner
      * @param to New owner
      */
@@ -61,70 +61,79 @@ interface ISet is IERC165 {
 
     /**
      * @notice Upgrade an object to a new kind or set revision
-     * @param id ID of the object
-     * @param kindRev New kind revision (0 = no change)
-     * @param setRev New set revision (0 = no change)
-     * @return desc Descriptor after upgrade
+     * @param id Object ID
+     * @param kindRev0 New kind revision (0 = no change)
+     * @param setRev0 New set revision (0 = no change)
+     * @return od Descriptor after upgrade
      */
-    function upgrade(uint64 id, uint32 kindRev, uint32 setRev) external returns (Descriptor memory desc);
+    function upgrade(uint64 id, uint32 kindRev0, uint32 setRev0) external returns (Descriptor memory od);
 
     /**
-     * @notice Bump an object's revision (e.g. for timestamp update)
-     * @param id ID of the object
-     * @return desc Descriptor after touch
+     * @notice Touch an object to increment revision without content change
+     * @param id Object ID
+     * @return od Descriptor after touch
      */
-    function touch(uint64 id) external returns (Descriptor memory desc);
+    function touch(uint64 id) external returns (Descriptor memory od);
 
     /**
      * @notice Transfer ownership of an object
-     * @param id ID of the object
+     * @param id Object ID
      * @param to Address of the new owner
      */
     function transfer(uint64 id, address to) external;
 
     /**
-     * @notice Resolve a valid revision number
-     * @param id ID of the object
+     * @notice Get URI template for metadata
+     * @dev Client should replace `{id}` and `{rev}` placeholders
+     * @return uri_ URI template string
+     */
+    function uri() external view returns (string memory uri_);
+
+    /**
+     * @notice Get current owner of an object
+     * @param id Object ID
+     * @return owner_ Current owner address
+     */
+    function owner(uint64 id) external view returns (address owner_);
+
+    /**
+     * @notice Resolve and validate a revision number
+     * @param id Object ID
      * @param rev0 Revision to check (0 = latest)
      * @return rev Valid revision (0 if invalid)
      */
     function revision(uint64 id, uint32 rev0) external view returns (uint32 rev);
 
     /**
-     * @notice Get base URI template for object metadata
-     * @dev Placeholders {id} and {rev} must be replaced by client
-     * @return _uri URI template string
-     */
-    function uri() external view returns (string memory _uri);
-
-    /**
-     * @notice Get the descriptor and owner
-     * @param id ID of the object
-     * @return desc Latest descriptor
-     * @return owner Current owner address
-     */
-    function sotaOf(uint64 id) external view returns (Descriptor memory desc, address owner);
-
-    /**
-     * @notice Get current owner of an object
-     * @param id ID of the object
-     * @return owner Address of the owner
-     */
-    function ownerOf(uint64 id) external view returns (address owner);
-
-    /**
      * @notice Get descriptor at a specific revision
-     * @param id ID of the object
-     * @param rev Revision number (0 = latest)
-     * @return desc Descriptor at the specified revision
+     * @param id Object ID
+     * @param rev0 Revision number (0 = latest)
+     * @return od Descriptor at that revision
      */
-    function descriptorAt(uint64 id, uint32 rev) external view returns (Descriptor memory desc);
+    function descriptor(uint64 id, uint32 rev0) external view returns (Descriptor memory od);
 
     /**
      * @notice Get elements at a specific revision
-     * @param id ID of the object
-     * @param rev Revision number (0 = latest)
-     * @return elements Array of elements at the revision
+     * @param id Object ID
+     * @param rev0 Revision number (0 = latest)
+     * @return elems Elements array at that revision
      */
-    function elementsAt(uint64 id, uint32 rev) external view returns (bytes32[] memory elements);
+    function elements(uint64 id, uint32 rev0) external view returns (bytes32[] memory elems);
+
+    /**
+     * @notice Get the latest descriptor and current owner
+     * @param id Object ID
+     * @return od Descriptor at the specified revision
+     * @return owner_ Current owner (not historical)
+     */
+    function sota(uint64 id) external view returns (Descriptor memory od, address owner_);
+
+    /**
+     * @notice Get descriptor and elements at a specific revision
+     * @param id Object ID
+     * @param rev0 Revision number to query (0 = latest)
+     * @return od Descriptor at the specified revision
+     * @return elems Elements at the specified revision
+     */
+    function snapshot(uint64 id, uint32 rev0) external view returns (Descriptor memory od, bytes32[] memory elems);
 }

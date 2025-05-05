@@ -5,7 +5,7 @@ import {ISoke} from "../interfaces/ISoke.sol";
 import {ISetRegistry} from "../interfaces/core/ISetRegistry.sol";
 import {Descriptor, IERC165, IInteroperable} from "../interfaces/user/IInteroperable.sol";
 
-abstract contract SetInteroperable is IInteroperable {
+abstract contract Interoperable is IInteroperable {
     error InvalidRegistryAddress();
     error CallerNotSetRegistry();
     error CallerNotOmniRegistry();
@@ -40,19 +40,6 @@ abstract contract SetInteroperable is IInteroperable {
     function registerSet() external onlySetOwner {
         ISetRegistry(_setRegistry).setRegister(bytes32("data"));
     }
-
-    // function mint(address to, uint64 id, bytes32[] memory elements) external onlyOwner {
-    //     _create(id, elements, to);
-    // }
-
-    // function update(uint64 id, bytes32[] memory elements) external onlyHolder(id) {
-    //     _update(id, elements);
-    // }
-
-    // function upgradeKind(uint32 kindRev) external onlyOwner {
-    //     if (kindRev <= _kindRev) revert InvalidKindRevision();
-    //     _kindRev = kindRev;
-    // }
 
     /// @inheritdoc IInteroperable
     function onSetRegister(uint64 set, Descriptor memory meta)
@@ -106,57 +93,47 @@ abstract contract SetInteroperable is IInteroperable {
         return this.onSetTouch.selector;
     }
 
-    /// @inheritdoc IInteroperable
-    function onObjectTouch(uint64 id) external virtual override onlyOmniRegistry returns (bytes4, uint32) {
-        return (this.onObjectTouch.selector, 0);
-    }
+    // /// @inheritdoc IInteroperable
+    // function onObjectTouch(uint64 id) external virtual override onlyOmniRegistry returns (bytes4, uint32) {
 
-    /// @inheritdoc IInteroperable
-    function onObjectRelate(uint64 id, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
-        external
-        virtual
-        override
-        onlyOmniRegistry
-        returns (Descriptor memory meta)
-    {
-        return meta;
-    }
+    //     return (this.onObjectTouch.selector, 0);
+    // }
 
-    /// @inheritdoc IInteroperable
-    function onObjectUnrelate(uint64 id, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
-        external
-        virtual
-        override
-        onlyOmniRegistry
-        returns (Descriptor memory meta)
-    {
-        return meta;
-    }
+    // /// @inheritdoc IInteroperable
+    // function onObjectRelate(uint64 id, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
+    //     external
+    //     virtual
+    //     override
+    //     onlyOmniRegistry
+    //     returns (Descriptor memory meta)
+    // {
+    //     return meta;
+    // }
 
-    /// @inheritdoc IInteroperable
-    function onObjectTransfer(uint64 id, address from, address to)
-        external
-        virtual
-        override
-        onlyOmniRegistry
-        returns (bytes4)
-    {
-        return this.onObjectTransfer.selector;
-    }
+    // /// @inheritdoc IInteroperable
+    // function onObjectUnrelate(uint64 id, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
+    //     external
+    //     virtual
+    //     override
+    //     onlyOmniRegistry
+    //     returns (Descriptor memory meta)
+    // {
+    //     return meta;
+    // }
+
+    // /// @inheritdoc IInteroperable
+    // function onObjectTransfer(uint64 id, address from, address to)
+    //     external
+    //     virtual
+    //     override
+    //     onlyOmniRegistry
+    //     returns (bytes4)
+    // {
+    //     return this.onObjectTransfer.selector;
+    // }
 
     /// @inheritdoc IERC165
     function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool supported) {
         return interfaceId == type(IInteroperable).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
-
-    // function onObjectRelate(uint64 headId, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
-    //     external
-    //     override
-    //     onlyOmniRegistry
-    //     returns (Descriptor memory meta)
-    // {
-    //     meta = _touchNoEmit(headId);
-    //     _afterStateChange(headId, meta.rev);
-    //     return meta;
-    // }
 }

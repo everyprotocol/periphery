@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import {IObjectMinter} from "../interfaces/core/IObjectMinter.sol";
 import {IERC165, IRemoteMintable} from "../interfaces/user/IRemoteMintable.sol";
 
-abstract contract SetRemoteMintable is IRemoteMintable {
+abstract contract RemoteMintable is IRemoteMintable {
     error InvalidObjectMinterAddress();
     error ObjectIdNotSpecified();
     error CallerNotObjectMinter();
@@ -42,11 +42,6 @@ abstract contract SetRemoteMintable is IRemoteMintable {
         onlyObjectMinter
         returns (bytes4 supported, uint64 id)
     {
-        if (id0 == 0) revert ObjectIdNotSpecified();
-        id = id0;
-        context; // slience warning;
-        operator; // slience warning;
-        // bytes32[] memory elements = data.length == 0 ? new bytes32[](0) : abi.decode(data, (bytes32[]));
         id = _mint(operator, to, id0, context, data);
         supported = this.onObjectMint.selector;
     }

@@ -2,10 +2,11 @@
 pragma solidity ^0.8.28;
 
 import {IERC7572} from "../interfaces/external/IERC7572.sol";
-import {Descriptor, IERC165, ISet, Set} from "./Set.sol";
+import {Descriptor, IERC165, ISet, SetBase} from "./SetBase.sol";
 import {IERC1155, IERC1155MetadataURI} from "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-abstract contract SetERC1155Compat is Set, IERC1155, IERC1155MetadataURI, IERC7572 {
+abstract contract SetERC1155Compat is SetBase, IERC1155, IERC1155MetadataURI, IERC7572 {
     error InvalidTransferAmount();
     error TransferFromIncorrectOwner();
     error LengthMismatch();
@@ -67,18 +68,27 @@ abstract contract SetERC1155Compat is Set, IERC1155, IERC1155MetadataURI, IERC75
 
     /// @inheritdoc IERC7572
     function contractURI() external view override returns (string memory) {
-        return _setURI();
+        return string.concat(_baseURI(), "meta");
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 interfaceId) public pure virtual override(IERC165, Set) returns (bool) {
-        return interfaceId == type(IERC1155MetadataURI).interfaceId || interfaceId == type(IERC1155).interfaceId
-            || interfaceId == type(IERC7572).interfaceId || Set.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) external pure virtual override(IERC165, SetBase) returns (bool) {
+        return _supportsInterface(interfaceId);
     }
 
-    function _uri(uint64 id, uint32 rev) internal view virtual returns (string memory);
+    function _supportsInterface(bytes4 interfaceId) internal pure returns (bool) {
+        return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC1155MetadataURI).interfaceId
+            || interfaceId == type(IERC1155).interfaceId || interfaceId == type(IERC7572).interfaceId
+            || interfaceId == type(ISet).interfaceId;
+    }
 
-    function _setURI() internal view virtual returns (string memory);
+    function _uri() internal view virtual override returns (string memory) {
+        return string.concat(_baseURI(), "{id}/{rev}/meta");
+    }
+
+    function _uri(uint64 id, uint32 rev) internal view virtual returns (string memory) {
+        return string.concat(_baseURI(), Strings.toString(id), "/", Strings.toString(rev), "/meta");
+    }
 
     function _safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) internal {
         if (to == address(0)) revert ZeroAddress();
@@ -154,4 +164,6 @@ abstract contract SetERC1155Compat is Set, IERC1155, IERC1155MetadataURI, IERC75
         emit Transferred(id, from, to);
         emit TransferSingle(msg.sender, from, to, id, 1);
     }
+
+    function _baseURI() internal view virtual returns (string memory);
 }

@@ -74,6 +74,32 @@ interface ISetRegistry {
     /// @return owner Address of the owner
     function setOwner(uint64 id) external view returns (address owner);
 
+    /**
+     * @notice Resolves and validates a set revision
+     * @param id Set ID
+     * @param rev0 Revision to check (0 = return latest)
+     * @return rev Valid revision (0 = not found or invalid)
+     */
+    function setRevision(uint64 id, uint32 rev0) external view returns (uint32 rev);
+
+    /**
+     * @notice Returns the descriptor of a set at a specific revision
+     * @param id Set ID
+     * @param rev0 Revision to query (0 = latest)
+     * @return desc Descriptor at the given revision
+     */
+    function setDescriptor(uint64 id, uint32 rev0) external view returns (Descriptor memory desc);
+
+    /// @notice Gets set descriptor and elements at a revision
+    /// @param id Set ID
+    /// @param rev0 Revision to query (0 = latest)
+    /// @return desc Descriptor at the given revision
+    /// @return elems Elements at the given revision
+    function setSnapthot(uint64 id, uint32 rev0)
+        external
+        view
+        returns (Descriptor memory desc, bytes32[] memory elems);
+
     /// @notice Gets the contract address of a set
     /// @param id Set ID
     /// @return code Address of the contract

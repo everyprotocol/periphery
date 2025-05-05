@@ -115,6 +115,32 @@ interface IKindRegistry {
     /// @return owner Address of the owner
     function kindOwner(uint64 id) external view returns (address owner);
 
+    /**
+     * @notice Resolves and validates a kind revision
+     * @param id Kind ID
+     * @param rev0 Revision to check (0 = return latest)
+     * @return rev Valid revision (0 = not found or invalid)
+     */
+    function kindRevision(uint64 id, uint32 rev0) external view returns (uint32 rev);
+
+    /**
+     * @notice Returns the descriptor of a kind at a specific revision
+     * @param id Kind ID
+     * @param rev0 Revision to query (0 = latest)
+     * @return desc Descriptor at the given revision
+     */
+    function kindDescriptor(uint64 id, uint32 rev0) external view returns (Descriptor memory desc);
+
+    /// @notice Gets kind snapshot at a revision
+    /// @param id Kind ID
+    /// @param rev0 Revision to query (0 = latest)
+    /// @return desc Descriptor at the given revision
+    /// @return elems Elements at the given revision
+    function kindSnapshot(uint64 id, uint32 rev0)
+        external
+        view
+        returns (Descriptor memory desc, bytes32[] memory elems);
+
     /// @notice Checks if a kind admits a relation
     /// @param kind Kind ID
     /// @param rev Kind revision

@@ -1,22 +1,40 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "../test/examples/MySet1155.sol";
+import {Descriptor, SetERC1155} from "@everyprotocol/periphery/SetERC1155.sol";
 import {ISet} from "@everyprotocol/periphery/interfaces/user/ISet.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
 import "forge-std/Test.sol";
 
-contract Set1155_Test is Test {
+contract MySetERC1155 is SetERC1155 {
+    constructor(uint64 kindId, uint32 kindRev, uint64 setId, uint32 setRev)
+        SetERC1155(kindId, kindRev, setId, setRev)
+    {}
+
+    function upgradeObjectKind(uint32 kindRev) external {
+        _initialDesc.kindRev = kindRev;
+    }
+
+    function upgradeObjectSet(uint32 setRev) external {
+        _initialDesc.setRev = setRev;
+    }
+
+    function _baseURI() internal pure override returns (string memory) {
+        return "https://example.com/myset1155/";
+    }
+}
+
+contract SetERC1155_Test is Test {
     // Protocol roles
     address protoAdmin = makeAddr("protoAdmin");
     address setOwner = makeAddr("setOwner");
     address caller = makeAddr("caller");
     address holder = makeAddr("holder");
 
-    MySet1155 set;
+    MySetERC1155 set;
 
     function setUp() public {
-        set = new MySet1155(17, 1, 18, 2);
+        set = new MySetERC1155(17, 1, 18, 2);
     }
 
     function test_MintAndTransfer() public {
@@ -34,7 +52,7 @@ contract Set1155_Test is Test {
         (uint64 id,) = set.mint(holder, elems);
 
         // Verify ownership
-        assertEq(set.ownerOf(id), holder);
+        assertEq(set.owner(id), holder);
         assertEq(set.balanceOf(holder, id), 1);
 
         // Transfer to caller
@@ -46,7 +64,7 @@ contract Set1155_Test is Test {
         set.safeTransferFrom(holder, caller, id, 1, "");
 
         // Verify new owner
-        assertEq(set.ownerOf(id), caller);
+        assertEq(set.owner(id), caller);
         assertEq(set.balanceOf(holder, id), 0);
         assertEq(set.balanceOf(caller, id), 1);
     }
@@ -80,8 +98,8 @@ contract Set1155_Test is Test {
         vm.prank(setOwner);
         (uint64 id, Descriptor memory desc) = set.mint(holder, elems);
         uint32 initialRev = desc.rev;
-        set._setKindRevision(set._kindRev() + 5);
-        set._setSetRevision(set._setRev() + 5);
+        set.upgradeObjectKind(6);
+        set.upgradeObjectSet(7);
 
         // Upgrade kind revision
         vm.prank(holder);
@@ -126,7 +144,7 @@ contract Set1155_Test is Test {
         assertEq(desc.rev, initialRev + 1);
 
         // Verify elements updated
-        bytes32[] memory storedElems = set.elementsAt(id, 0);
+        bytes32[] memory storedElems = set.elements(id, 0);
         assertEq(storedElems.length, 2);
         assertEq(storedElems[0], newElems[0]);
         assertEq(storedElems[1], newElems[1]);
@@ -161,8 +179,8 @@ contract Set1155_Test is Test {
         set.safeBatchTransferFrom(holder, caller, ids, amounts, "");
 
         // Verify new owners
-        assertEq(set.ownerOf(id1), caller);
-        assertEq(set.ownerOf(id2), caller);
+        assertEq(set.owner(id1), caller);
+        assertEq(set.owner(id2), caller);
     }
 
     function test_ERC1155_Approval() public {

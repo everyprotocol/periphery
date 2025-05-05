@@ -1,9 +1,23 @@
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.28;
 
-import "./examples/MySetMinimal.sol";
-
+import {Descriptor, SetMinimal} from "@everyprotocol/periphery/SetMinimal.sol";
 import {ISet} from "@everyprotocol/periphery/interfaces/user/ISet.sol";
 import "forge-std/Test.sol";
+
+contract MySetMinimal is SetMinimal {
+    constructor(uint64 kindId, uint32 kindRev, uint64 setId, uint32 setRev)
+        SetMinimal(kindId, kindRev, setId, setRev)
+    {}
+
+    function upgradeObjectKind(uint32 kindRev) external {
+        _initialDesc.kindRev = kindRev;
+    }
+
+    function upgradeObjectSet(uint32 setRev) external {
+        _initialDesc.setRev = setRev;
+    }
+}
 
 contract SetMinimal_Test is Test {
     MySetMinimal set;
@@ -23,10 +37,10 @@ contract SetMinimal_Test is Test {
 
         (uint64 id, Descriptor memory desc) = set.mint(user, elems);
         assertEq(id, 1, "First mint should have ID 1");
-        assertEq(desc.kindId, set._kindId(), "Kind ID should match");
-        assertEq(desc.kindRev, set._kindRev(), "Kind revision should match");
-        assertEq(desc.setId, set._setId(), "Set ID should match");
-        assertEq(desc.setRev, set._setRev(), "Set revision should match");
+        assertEq(desc.kindId, 17, "Kind ID should match");
+        assertEq(desc.kindRev, 1, "Kind revision should match");
+        assertEq(desc.setId, 18, "Set ID should match");
+        assertEq(desc.setRev, 2, "Set revision should match");
     }
 
     function test_Update() public {
@@ -51,8 +65,8 @@ contract SetMinimal_Test is Test {
         vm.prank(user);
         (uint64 id,) = set.mint(user, elems);
 
-        set._setKindRevision(5);
-        set._setSetRevision(5);
+        set.upgradeObjectKind(5);
+        set.upgradeObjectSet(5);
         // Upgrade to same revisions (no change)
         Descriptor memory expectedDesc = Descriptor(0, 2, 1, 3, 17, 18);
         vm.expectEmit(true, true, true, true);
@@ -76,11 +90,11 @@ contract SetMinimal_Test is Test {
         vm.prank(user);
         set.transfer(id, newOwner);
 
-        assertEq(set.ownerOf(id), newOwner, "Ownership should transfer");
+        assertEq(set.owner(id), newOwner, "Ownership should transfer");
     }
 
     function test_Uri() public view {
         string memory uri = set.uri();
-        assertEq(uri, "http://image.local/mysetminimal/{id}/{rev}/meta", "URI should match");
+        assertEq(uri, "https://example.com/setminimal/{id}/{rev}/meta", "URI should match");
     }
 }
