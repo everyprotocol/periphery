@@ -16,12 +16,7 @@ enum ElementType {
     Model
 }
 
-library ElementTypeLib {
-    struct RelationRef {
-        uint16 rev;
-        uint48 rel;
-    }
-
+library ElementLib {
     /// @notice Reference to a fungible token value instance
     struct ElementValueRef {
         uint16 rev; // Token revision
@@ -35,5 +30,12 @@ library ElementTypeLib {
         uint48 tok; // Token ID
         uint64 id; // Unique object ID
         uint128 amount; // Optional amount (e.g. for partial NFTs)
+    }
+
+    /// @notice Reference to an object instance
+    struct ElementObjectRef {
+        uint128 _reserved;
+        uint64 set; // Set ID
+        uint64 id; // Object ID
     }
 }

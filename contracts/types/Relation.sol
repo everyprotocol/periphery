@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.28;
 
-import {TokenType} from "./TokenSpec.sol";
+import {TokenType} from "./Token.sol";
 
 /// @notice Represents a constraint on the acceptable number of objects by kind in a relation. A maximum of 16 adjacencies can be specified per relation.
 /// @param degs Encodes minimum and maximum degree constraints. minDeg = (degs & 0x8000) >> 15, maxDeg = degs & 0x7FFF
@@ -10,6 +10,26 @@ import {TokenType} from "./TokenSpec.sol";
 struct Adjacency {
     uint16 degs;
     uint48 kind;
+}
+
+struct SID {
+    uint64 set;
+    uint64 id;
+}
+
+struct Node {
+    uint64 data;
+    uint32 _reserved;
+    uint32 grant;
+    uint64 set;
+    uint64 id;
+}
+
+struct Arc {
+    uint64 data;
+    uint64 rel;
+    uint64 set;
+    uint64 id;
 }
 
 /// @notice Defines who is authorized to initiate a relation
@@ -77,7 +97,7 @@ struct RelationRule {
     bytes20 extra; // Optional: preset address or contract address to resolve beneficiaries
 }
 
-library RelationInitiatorLib {
+library RelationLib {
     /// @notice Data for Delegate-based authorization
     struct RelationInitiatorDataPreset {
         uint96 padding;

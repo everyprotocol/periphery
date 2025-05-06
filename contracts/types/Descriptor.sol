@@ -2,59 +2,57 @@
 pragma solidity ^0.8.28;
 
 struct Descriptor {
-    uint32 traits; // Traits or flags of the object
-    uint32 rev; // Current revision of the object itself
-    uint32 kindRev; // Revision of the object's kind
-    uint32 setRev; // Revision of the object's set
-    uint64 kindId; //Id of the object's kind
-    uint64 setId; // Id of the object's set
+    uint32 traits; // bits 224–255
+    uint32 rev; // bits 192–223
+    uint32 kindRev; // bits 160–191
+    uint32 setRev; // bits 128–159
+    uint64 kindId; // bits 64–127
+    uint64 setId; // bits 0–63
 }
 
 type DescriptorPacked is bytes32;
-
-using DescriptorLib for DescriptorPacked global;
 
 library DescriptorLib {
     function pack(Descriptor memory d) internal pure returns (DescriptorPacked) {
         return DescriptorPacked.wrap(
             bytes32(
-                (uint256(d.traits)) | (uint256(d.rev) << 32) | (uint256(d.kindRev) << 64) | (uint256(d.setRev) << 96)
-                    | (uint256(d.kindId) << 128) | (uint256(d.setId) << 192)
+                (uint256(d.traits) << 224) | (uint256(d.rev) << 192) | (uint256(d.kindRev) << 160)
+                    | (uint256(d.setRev) << 128) | (uint256(d.kindId) << 64) | uint256(d.setId)
             )
         );
     }
 
     function unpack(DescriptorPacked packed) internal pure returns (Descriptor memory d) {
         uint256 raw = uint256(DescriptorPacked.unwrap(packed));
-        d.traits = uint32(raw);
-        d.rev = uint32(raw >> 32);
-        d.kindRev = uint32(raw >> 64);
-        d.setRev = uint32(raw >> 96);
-        d.kindId = uint64(raw >> 128);
-        d.setId = uint64(raw >> 192);
+        d.traits = uint32(raw >> 224);
+        d.rev = uint32(raw >> 192);
+        d.kindRev = uint32(raw >> 160);
+        d.setRev = uint32(raw >> 128);
+        d.kindId = uint64(raw >> 64);
+        d.setId = uint64(raw);
     }
 
     function traits(DescriptorPacked packed) internal pure returns (uint32) {
-        return uint32(uint256(DescriptorPacked.unwrap(packed)));
+        return uint32(uint256(DescriptorPacked.unwrap(packed)) >> 224);
     }
 
     function rev(DescriptorPacked packed) internal pure returns (uint32) {
-        return uint32(uint256(DescriptorPacked.unwrap(packed)) >> 32);
+        return uint32(uint256(DescriptorPacked.unwrap(packed)) >> 192);
     }
 
     function kindRev(DescriptorPacked packed) internal pure returns (uint32) {
-        return uint32(uint256(DescriptorPacked.unwrap(packed)) >> 64);
+        return uint32(uint256(DescriptorPacked.unwrap(packed)) >> 160);
     }
 
     function setRev(DescriptorPacked packed) internal pure returns (uint32) {
-        return uint32(uint256(DescriptorPacked.unwrap(packed)) >> 96);
+        return uint32(uint256(DescriptorPacked.unwrap(packed)) >> 128);
     }
 
     function kindId(DescriptorPacked packed) internal pure returns (uint64) {
-        return uint64(uint256(DescriptorPacked.unwrap(packed)) >> 128);
+        return uint64(uint256(DescriptorPacked.unwrap(packed)) >> 64);
     }
 
     function setId(DescriptorPacked packed) internal pure returns (uint64) {
-        return uint64(uint256(DescriptorPacked.unwrap(packed)) >> 192);
+        return uint64(uint256(DescriptorPacked.unwrap(packed)));
     }
 }

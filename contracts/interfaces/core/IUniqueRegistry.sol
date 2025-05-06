@@ -2,68 +2,58 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor} from "../../types/Descriptor.sol";
-import {TokenSpec, TokenStandard} from "../../types/TokenSpec.sol";
+import {TokenSpec, TokenStandard} from "../../types/Token.sol";
 
-/**
- * @title IUniqueRegistry
- * @notice Manages registration and updates of uniques
- */
+/// @title IUniqueRegistry
+/// @notice Interface for registering and managing uniques
 interface IUniqueRegistry {
     // --- Events ---
 
     /// @notice Emitted when a new unique is registered
-    /// @param id ID of the unique
+    /// @param id Unique ID
     /// @param desc Descriptor of the unique
     /// @param code Token contract address
-    /// @param data Hash of the underlying matter
-    /// @param spec Token specification (standard, decimals, symbol, etc.)
-    /// @param owner Owner of the registered unique
+    /// @param data Hash of the underlying asset (e.g., image, model, metadata)
+    /// @param spec Token specification (standard, decimals, and symbol)
+    /// @param owner Address of the initial owner
     event UniqueRegistered(uint64 id, Descriptor desc, address code, bytes32 data, TokenSpec spec, address owner);
 
     /// @notice Emitted when a unique is updated
-    /// @param id ID of the unique
-    /// @param desc Updated descriptor
-    /// @param data New data hash
-    /// @param spec New or unchanged token specification
+    /// @param id Unique ID
+    /// @param desc Updated descriptor (same ID, new revision)
+    /// @param data New data hash representing the updated asset
+    /// @param spec Updated or unchanged token specification
     event UniqueUpdated(uint64 id, Descriptor desc, bytes32 data, TokenSpec spec);
 
-    /// @notice Emitted when a unique is upgraded
-    /// @param id ID of the unique
-    /// @param desc Descriptor after upgrade
+    /// @notice Emitted when a unique is upgraded to a new revision
+    /// @param id Unique ID
+    /// @param desc Descriptor after the upgrade (revised kind/set refs)
     event UniqueUpgraded(uint64 id, Descriptor desc);
 
     /// @notice Emitted when a unique is touched (revision bumped with no content change)
-    /// @param id ID of the unique
-    /// @param desc Descriptor after touch
+    /// @param id Unique ID
+    /// @param desc Descriptor after touch (updated revision only)
     event UniqueTouched(uint64 id, Descriptor desc);
 
     /// @notice Emitted when ownership of a unique is transferred
-    /// @param id ID of the unique
-    /// @param from Previous owner
-    /// @param to New owner
+    /// @param id Unique ID
+    /// @param from Previous owner's address
+    /// @param to New owner's address
     event UniqueTransferred(uint64 id, address from, address to);
 
     // --- Write Methods ---
 
-    /// @notice Registers a new unique
-    /// @param code Token contract address
-    /// @param data Hash of the underlying matter
-    /// @param std Token standard (e.g., ERC721)
-    /// @param decimals Decimal precision (usually 0 for unique tokens)
-    /// @param symbol Token symbol (max 14 chars)
-    /// @param begin Inclusive start index of uniqueness
-    /// @param end Exclusive end index of uniqueness
+    /// @notice Registers a new unique token
+    /// @param code Address of the token contract
+    /// @param data Hash of the associated matter
+    /// @param std Token standard (e.g. ERC721)
+    /// @param decimals Number of decimals
+    /// @param symbol Display symbol (max 30 characters)
     /// @return id ID of the new unique
     /// @return desc Descriptor after registration
-    function uniqueRegister(
-        address code,
-        bytes32 data,
-        TokenStandard std,
-        uint8 decimals,
-        string memory symbol,
-        uint64 begin,
-        uint64 end
-    ) external returns (uint64 id, Descriptor memory desc);
+    function uniqueRegister(address code, bytes32 data, TokenStandard std, uint8 decimals, string memory symbol)
+        external
+        returns (uint64 id, Descriptor memory desc);
 
     /// @notice Updates the data hash of a unique
     /// @param id Unique ID
@@ -74,49 +64,65 @@ interface IUniqueRegistry {
     /// @notice Updates the data hash and symbol of a unique
     /// @param id Unique ID
     /// @param data New data hash
-    /// @param symbol New symbol (max 14 chars)
+    /// @param symbol New display symbol (max 30 characters)
     /// @return desc Updated descriptor
     function uniqueUpdate(uint64 id, bytes32 data, string memory symbol) external returns (Descriptor memory desc);
 
-    /// @notice Upgrades kind/set revision of a unique
+    /// @notice Upgrades the kind and/or set revision of a unique
     /// @param id Unique ID
-    /// @param kindRev New kind revision (0 = skip)
-    /// @param setRev New set revision (0 = skip)
+    /// @param kindRev New kind revision (0 = no change)
+    /// @param setRev New set revision (0 = no change)
     /// @return desc Descriptor after upgrade
     function uniqueUpgrade(uint64 id, uint32 kindRev, uint32 setRev) external returns (Descriptor memory desc);
 
-    /// @notice Touches a unique (revision bump only)
+    /// @notice Bumps the revision of a unique with no content change
     /// @param id Unique ID
     /// @return desc Descriptor after touch
     function uniqueTouch(uint64 id) external returns (Descriptor memory desc);
 
-    /// @notice Transfers ownership of a unique
+    /// @notice Transfers ownership of a unique token
     /// @param id Unique ID
-    /// @param to New owner address
-    /// @return from Previous owner address
+    /// @param to Address of the new owner
+    /// @return from Address of the previous owner
     function uniqueTransfer(uint64 id, address to) external returns (address from);
 
     // --- Read Methods ---
 
-    /// @notice Gets the descriptor and elements at a specific revision
+    /// @notice Resolves and validates a revision
     /// @param id Unique ID
-    /// @param rev Revision number
+    /// @param rev0 Requested revision (0 = latest)
+    /// @return rev Resolved revision (0 = not found)
+    function uniqueRevision(uint64 id, uint32 rev0) external view returns (uint32 rev);
+
+    /// @notice Returns the descriptor at a given revision
+    /// @param id Unique ID
+    /// @param rev0 Revision to query (0 = latest)
+    /// @return desc Descriptor at the specified revision
+    function uniqueDescriptor(uint64 id, uint32 rev0) external view returns (Descriptor memory desc);
+
+    /// @notice Returns descriptor and elements at a specific revision
+    /// @param id Unique ID
+    /// @param rev0 Revision to query (0 = latest)
     /// @return desc Descriptor at the revision
     /// @return elems Elements at the revision
-    function uniqueAt(uint64 id, uint32 rev) external view returns (Descriptor memory desc, bytes32[] memory elems);
+    function uniqueSnapshot(uint64 id, uint32 rev0)
+        external
+        view
+        returns (Descriptor memory desc, bytes32[] memory elems);
 
-    /// @notice Gets the current owner of a unique
+    /// @notice Returns the current owner of a unique
     /// @param id Unique ID
-    /// @return owner Address of the owner
+    /// @return owner Address of the current owner
     function uniqueOwner(uint64 id) external view returns (address owner);
 
-    /// @notice Gets the latest revision of a unique (0 if not found)
+    /// @notice Returns the latest descriptor and current owner
     /// @param id Unique ID
-    /// @return rev Latest revision
-    function uniqueStatus(uint64 id) external view returns (uint32 rev);
+    /// @return desc Latest descriptor
+    /// @return owner Address of the current owner
+    function uniqueSota(uint64 id) external view returns (Descriptor memory desc, address owner);
 
-    /// @notice Checks if all specified uniques are active (revision > 0)
-    /// @param ids Array of unique IDs
+    /// @notice Checks whether all given uniques are active (revision > 0)
+    /// @param ids List of unique IDs
     /// @return active True if all exist and are active
     function uniqueStatus(uint64[] memory ids) external view returns (bool active);
 }

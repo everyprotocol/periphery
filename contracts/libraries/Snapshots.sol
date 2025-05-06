@@ -19,7 +19,7 @@ library Snapshots {
     error InvalidKindRevision();
     error InvalidSetRevision();
     error InvalidElements();
-    error InvalidField();
+    error InvalidFieldIndex();
     error RecordExists(uint64 id);
     error RecordNotExist(uint64 id);
     error RecordNotActive(uint64 id);
@@ -152,8 +152,63 @@ library Snapshots {
         return status.owner;
     }
 
-    function statusOf(Storage storage $, uint64 id) external view returns (uint32) {
+    function revisionOf(Storage storage $, uint64 id) external view returns (uint32) {
         return $.sota[id].latest;
+    }
+
+    function revisionAt(Storage storage $, uint64 id, uint32 rev0) external view returns (uint32) {
+        uint32 latest = $.sota[id].latest;
+        if (latest == 0 || rev0 > latest) return 0;
+        return rev0 == 0 ? latest : rev0;
+    }
+
+    function descriptorAt(Storage storage $, uint64 id, uint32 rev0) external view returns (Descriptor memory) {
+        uint32 rev = _requireRevision($, id, rev0);
+        Revision memory revision = $.revisions[_makeRevisionKey(id, rev)];
+        return revision.desc;
+    }
+
+    function elementsAt(Storage storage $, uint64 id, uint32 rev0, uint256 num)
+        external
+        view
+        returns (bytes32[] memory)
+    {
+        if (num > Constraints.MAX_KIND_ELEMENTS) revert InvalidElements();
+        uint32 rev = _requireRevision($, id, rev0);
+        Revision memory revision = $.revisions[_makeRevisionKey(id, rev)];
+        bytes32[] memory elems = new bytes32[](num);
+        for (uint256 i = 0; i < num; i++) {
+            elems[i] = revision.elems[i];
+        }
+        return elems;
+    }
+
+    function elementAt(Storage storage $, uint64 id, uint32 rev0, uint256 index) external view returns (bytes32) {
+        if (index >= Constraints.MAX_KIND_ELEMENTS) revert InvalidFieldIndex();
+        uint32 rev = _requireRevision($, id, rev0);
+        return $.revisions[_makeRevisionKey(id, rev)].elems[index];
+    }
+
+    function sotaOf(Storage storage $, uint64 id) external view returns (Descriptor memory desc, address owner) {
+        Status memory status = _requireStatus($, id);
+        Revision memory revision = $.revisions[_makeRevisionKey(id, status.latest)];
+        desc = revision.desc;
+        owner = status.owner;
+    }
+
+    function snapshotAt(Storage storage $, uint64 id, uint32 rev0, uint256 num)
+        external
+        view
+        returns (Descriptor memory, bytes32[] memory)
+    {
+        if (num > Constraints.MAX_KIND_ELEMENTS) revert InvalidElements();
+        uint32 rev = _requireRevision($, id, rev0);
+        Revision memory revision = $.revisions[_makeRevisionKey(id, rev)];
+        bytes32[] memory elems = new bytes32[](num);
+        for (uint256 i = 0; i < num; i++) {
+            elems[i] = revision.elems[i];
+        }
+        return (revision.desc, elems);
     }
 
     function statusOf(Storage storage $, uint64[] memory ids) external view returns (bool) {
@@ -165,77 +220,18 @@ library Snapshots {
         return true;
     }
 
-    function descriptorAt(Storage storage $, uint64 id, uint32 rev) external view returns (Descriptor memory) {
-        Status memory status = _requireStatus($, id);
-        if (rev == 0) {
-            rev = status.latest;
-        } else if (rev > status.latest) {
-            revert RevisionNotExist(id, rev);
-        }
-
-        Revision memory revision = $.revisions[_makeRevisionKey(id, rev)];
-        return revision.desc;
-    }
-
-    function elementsAt(Storage storage $, uint64 id, uint32 rev, uint256 num)
-        external
-        view
-        returns (bytes32[] memory)
-    {
-        if (num > Constraints.MAX_KIND_ELEMENTS) revert InvalidElements();
-        Status memory status = _requireStatus($, id);
-        if (rev == 0) {
-            rev = status.latest;
-        } else if (rev > status.latest) {
-            revert RevisionNotExist(id, rev);
-        }
-
-        Revision memory revision = $.revisions[_makeRevisionKey(id, rev)];
-        bytes32[] memory elems = new bytes32[](num);
-        for (uint256 i = 0; i < num; i++) {
-            elems[i] = revision.elems[i];
-        }
-        return elems;
-    }
-
-    function fieldAt(Storage storage $, uint64 id, uint32 rev, uint256 index) external view returns (bytes32) {
-        if (index >= Constraints.MAX_KIND_ELEMENTS) revert InvalidField();
-        Status memory status = _requireStatus($, id);
-        if (rev == 0) {
-            rev = status.latest;
-        } else if (rev > status.latest) {
-            revert RevisionNotExist(id, rev);
-        }
-        return $.revisions[_makeRevisionKey(id, rev)].elems[index];
-    }
-
-    function recordAt(Storage storage $, uint64 id, uint32 rev, uint256 num)
-        external
-        view
-        returns (Descriptor memory, bytes32[] memory)
-    {
-        if (num > Constraints.MAX_KIND_ELEMENTS) revert InvalidElements();
-
-        Status memory status = _requireStatus($, id);
-        if (rev == 0) {
-            rev = status.latest;
-        } else if (rev > status.latest) {
-            revert RevisionNotExist(id, rev);
-        }
-        Revision memory revision = $.revisions[_makeRevisionKey(id, rev)];
-        bytes32[] memory elems = new bytes32[](num);
-        for (uint256 i = 0; i < num; i++) {
-            elems[i] = revision.elems[i];
-        }
-        return (revision.desc, elems);
-    }
-
     // --- Internals ---
 
     function _requireStatus(Storage storage $, uint64 id) private view returns (Status memory) {
         Status memory status = $.sota[id];
         if (status.latest == 0) revert RecordNotExist(id);
         return status;
+    }
+
+    function _requireRevision(Storage storage $, uint64 id, uint32 rev0) private view returns (uint32) {
+        Status memory status = _requireStatus($, id);
+        if (rev0 > status.latest) revert RevisionNotExist(id, rev0);
+        return rev0 == 0 ? status.latest : rev0;
     }
 
     function _validateDescriptor(Descriptor memory desc) private pure {

@@ -5,9 +5,6 @@ import {IObjectAuthorization} from "./IObjectAuthorization.sol";
 import {IObjectInteraction} from "./IObjectInteraction.sol";
 import {IRelationRegistry} from "./IRelationRegistry.sol";
 
-/**
- * @title IOmniRegistry
- * @notice Manages relation registration and object interactions through relations.
- *
- */
+/// @title IOmniRegistry
+/// @notice Interface for object interactions
 interface IOmniRegistry is IRelationRegistry, IObjectAuthorization, IObjectInteraction {}
