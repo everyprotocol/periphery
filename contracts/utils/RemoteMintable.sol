@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IObjectMinter} from "../interfaces/core/IObjectMinter.sol";
+import {IObjectMinter, MintPolicy} from "../interfaces/core/IObjectMinter.sol";
+import {IObjectMinterAdmin} from "../interfaces/user/IObjectMinterAdmin.sol";
 import {IERC165, IRemoteMintable} from "../interfaces/user/IRemoteMintable.sol";
 
-abstract contract RemoteMintable is IRemoteMintable {
+abstract contract RemoteMintable is IRemoteMintable, IObjectMinterAdmin {
     error InvalidObjectMinterAddress();
     error ObjectIdNotSpecified();
     error CallerNotObjectMinter();
@@ -23,15 +24,18 @@ abstract contract RemoteMintable is IRemoteMintable {
         _objectMinter = minter;
     }
 
-    function addMintPolicy(IObjectMinter.MintPolicy memory policy) external onlySetOwner returns (uint32 index) {
+    /// @inheritdoc IObjectMinterAdmin
+    function addMintPolicy(MintPolicy memory policy) external override onlySetOwner returns (uint32 index) {
         index = IObjectMinter(_objectMinter).mintPolicyAdd(policy);
     }
 
-    function disableMintPolicy(uint32 index) external onlySetOwner {
+    /// @inheritdoc IObjectMinterAdmin
+    function disableMintPolicy(uint32 index) external override onlySetOwner {
         IObjectMinter(_objectMinter).mintPolicyDisable(index);
     }
 
-    function enableMintPolicy(uint32 index) external onlySetOwner {
+    /// @inheritdoc IObjectMinterAdmin
+    function enableMintPolicy(uint32 index) external override onlySetOwner {
         IObjectMinter(_objectMinter).mintPolicyEnable(index);
     }
 

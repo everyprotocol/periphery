@@ -55,8 +55,9 @@ interface ISetRegistry {
 
     /// @notice Touches a set (increments revision without any changes)
     /// @param id ID of the set
+    /// @return id ID of the set
     /// @return desc Descriptor after touch
-    function setTouch(uint64 id) external returns (Descriptor memory desc);
+    function setTouch() external returns (uint64 id, Descriptor memory desc);
 
     // --- Read Methods ---
 

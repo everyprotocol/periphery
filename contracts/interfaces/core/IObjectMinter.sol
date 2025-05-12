@@ -1,77 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.28;
 
+import {MintPolicy} from "../../types/Minter.sol";
+
 /**
  * @title IObjectMinter
  * @notice Interface for minting objects with configurable policies
  */
 interface IObjectMinter {
-    /**
-     * @title IObjectMinter
-     * @notice Interface for minting objects with configurable policies and permissions
-     */
-    struct MintPolicy {
-        uint32 index; // Policy index
-        MintPolicyStatus status; // Enum: MintPolicyStatus
-        MintPermissionType permType; // Enum: MintPermissionType
-        uint16 tag; // Set defined tag to pass back when callback
-        uint32 mintLimit; // Max allowed per address
-        address fundsRecipient; // Where creator fee are sent
-        address currency; // Payment token (0 for native token or non-zero for ERC20 address)
-        uint96 mintPrice; // Price per mint
-        uint64 rangeStart; // Inclusive object ID start
-        uint64 rangeEnd; // Exclusive object ID end
-        uint64 saleStart; // Start time for sale
-        uint64 saleEnd; // End time for sale
-        bytes32 permData; // Encoded data (e.g., Merkle root)
-    }
-
-    /**
-     * @notice Status of a mint policy
-     * @dev None: Policy doesn't exist
-     * @dev Enabled: Policy is active and can be used for minting
-     * @dev Disabled: Policy exists but is inactive
-     */
-    enum MintPolicyStatus {
-        None,
-        Enabled,
-        Disabled
-    }
-
-    /**
-     * @notice Access control modes for minting
-     * @dev Public: Open to anyone without restrictions
-     * @dev Allowlist: Restricted to addresses verified via Merkle proof
-     * @dev AllowTable: Restricted to addresses with custom limits (price and quantity) verified via Merkle proof
-     */
-    enum MintPermissionType {
-        /// @notice Open to anyone without restrictions
-        Public,
-        Allowlist,
-        AllowTable
-    }
-
-    /**
-     * @notice Auth argument encoding rules based on permission type
-     * @dev If policy.permType == MintPermissionType.Public:
-     *      - `auth` must be empty.
-     * @dev If policy.permType == MintPermissionType.Allowlist:
-     *      - `auth` must be encoded as:
-     *          abi.encode(bytes32[] proof)
-     *      - Merkle leaf format:
-     *          keccak256(abi.encode(user))
-     * @dev If policy.permType == MintPermissionType.AllowTable:
-     *      - `auth` must be encoded as:
-     *          abi.encode(uint96 price, uint32 limit, bytes32[] proof)
-     *      - Merkle leaf format:
-     *          keccak256(abi.encode(user, price, limit))
-     * @dev In all cases, the `proof` is used with the policy.permData (Merkle root)
-     *      to validate the user's inclusion in the permissioned group.
-     */
-    struct MintAuthData {
-        bytes32 data;
-    }
-
     // --- Events ---
     /**
      * @notice Emitted when a mint policy is enabled

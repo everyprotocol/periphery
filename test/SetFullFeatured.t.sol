@@ -6,6 +6,7 @@ import {IObjectMinter} from "@everyprotocol/periphery/interfaces/core/IObjectMin
 import {IInteroperable} from "@everyprotocol/periphery/interfaces/user/IInteroperable.sol";
 import {IRemoteMintable} from "@everyprotocol/periphery/interfaces/user/IRemoteMintable.sol";
 import {ISet} from "@everyprotocol/periphery/interfaces/user/ISet.sol";
+import {MintPermissionType, MintPolicy, MintPolicyStatus} from "@everyprotocol/periphery/types/Minter.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "forge-std/Test.sol";
@@ -179,20 +180,20 @@ contract SetFullFeatured_Test is Test {
         MySetFullFeatured testSet = new MySetFullFeatured(setOwner, address(mockMinter), setRegistry, KIND_ID, KIND_REV);
 
         // Create a mint policy
-        IObjectMinter.MintPolicy memory policy = IObjectMinter.MintPolicy({
+        MintPolicy memory policy = MintPolicy({
             index: 0,
-            status: IObjectMinter.MintPolicyStatus.Enabled,
-            permType: IObjectMinter.MintPermissionType.Public,
+            status: MintPolicyStatus.Enabled,
+            perm: MintPermissionType.Public,
             tag: 1,
-            mintLimit: 10,
-            fundsRecipient: setOwner,
+            limit: 10,
+            recipient: setOwner,
             currency: address(0),
-            mintPrice: 0.1 ether,
-            rangeStart: 1,
-            rangeEnd: 100,
+            price: 0.1 ether,
+            idStart: 1,
+            idEnd: 100,
             saleStart: uint64(block.timestamp),
             saleEnd: uint64(block.timestamp + 1 days),
-            permData: bytes32(0)
+            data: bytes32(0)
         });
 
         // Test adding a mint policy
@@ -212,20 +213,20 @@ contract SetFullFeatured_Test is Test {
     }
 
     function test_OwnerOnlyFunctions() public {
-        IObjectMinter.MintPolicy memory policy = IObjectMinter.MintPolicy({
+        MintPolicy memory policy = MintPolicy({
             index: 0,
-            status: IObjectMinter.MintPolicyStatus.Enabled,
-            permType: IObjectMinter.MintPermissionType.Public,
+            status: MintPolicyStatus.Enabled,
+            perm: MintPermissionType.Public,
             tag: 1,
-            mintLimit: 10,
-            fundsRecipient: setOwner,
+            limit: 10,
+            recipient: setOwner,
             currency: address(0),
-            mintPrice: 0.1 ether,
-            rangeStart: 1,
-            rangeEnd: 100,
+            price: 0.1 ether,
+            idStart: 1,
+            idEnd: 100,
             saleStart: uint64(block.timestamp),
             saleEnd: uint64(block.timestamp + 1 days),
-            permData: bytes32(0)
+            data: bytes32(0)
         });
 
         // Test that non-owner cannot add mint policy
@@ -289,7 +290,7 @@ contract MockObjectMinter {
     bool private _disablePolicyCalled;
     bool private _enablePolicyCalled;
 
-    function mintPolicyAdd(IObjectMinter.MintPolicy memory) external returns (uint32) {
+    function mintPolicyAdd(MintPolicy memory) external returns (uint32) {
         _addPolicyCalled = true;
         return 1;
     }

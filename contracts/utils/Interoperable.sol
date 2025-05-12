@@ -4,8 +4,9 @@ pragma solidity ^0.8.28;
 import {ISoke} from "../interfaces/ISoke.sol";
 import {ISetRegistry} from "../interfaces/core/ISetRegistry.sol";
 import {Descriptor, IERC165, IInteroperable} from "../interfaces/user/IInteroperable.sol";
+import {ISetRegistryAdmin} from "../interfaces/user/ISetRegistryAdmin.sol";
 
-abstract contract Interoperable is IInteroperable {
+abstract contract Interoperable is IInteroperable, ISetRegistryAdmin {
     error InvalidRegistryAddress();
     error CallerNotSetRegistry();
     error CallerNotOmniRegistry();
@@ -37,8 +38,24 @@ abstract contract Interoperable is IInteroperable {
         _elemRegistry = ISoke(setr).elementRegistry();
     }
 
-    function registerSet() external onlySetOwner {
-        ISetRegistry(_setRegistry).setRegister(bytes32("data"));
+    /// @inheritdoc ISetRegistryAdmin
+    function registerSet(bytes32 data) external override onlySetOwner returns (uint64 id, Descriptor memory desc) {
+        return ISetRegistry(_setRegistry).setRegister(data);
+    }
+
+    /// @inheritdoc ISetRegistryAdmin
+    function updateSet(bytes32 data) external returns (uint64 id, Descriptor memory desc) {
+        return ISetRegistry(_setRegistry).setUpdate(data);
+    }
+
+    /// @inheritdoc ISetRegistryAdmin
+    function upgradeSet(uint32 kindRev0, uint32 setRev0) external returns (uint64 id, Descriptor memory desc) {
+        return ISetRegistry(_setRegistry).setUpgrade(kindRev0, setRev0);
+    }
+
+    /// @inheritdoc ISetRegistryAdmin
+    function touchSet() external returns (uint64 id, Descriptor memory desc) {
+        return ISetRegistry(_setRegistry).setTouch();
     }
 
     /// @inheritdoc IInteroperable
@@ -92,45 +109,6 @@ abstract contract Interoperable is IInteroperable {
         _setRev = meta.rev;
         return this.onSetTouch.selector;
     }
-
-    // /// @inheritdoc IInteroperable
-    // function onObjectTouch(uint64 id) external virtual override onlyOmniRegistry returns (bytes4, uint32) {
-
-    //     return (this.onObjectTouch.selector, 0);
-    // }
-
-    // /// @inheritdoc IInteroperable
-    // function onObjectRelate(uint64 id, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
-    //     external
-    //     virtual
-    //     override
-    //     onlyOmniRegistry
-    //     returns (Descriptor memory meta)
-    // {
-    //     return meta;
-    // }
-
-    // /// @inheritdoc IInteroperable
-    // function onObjectUnrelate(uint64 id, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
-    //     external
-    //     virtual
-    //     override
-    //     onlyOmniRegistry
-    //     returns (Descriptor memory meta)
-    // {
-    //     return meta;
-    // }
-
-    // /// @inheritdoc IInteroperable
-    // function onObjectTransfer(uint64 id, address from, address to)
-    //     external
-    //     virtual
-    //     override
-    //     onlyOmniRegistry
-    //     returns (bytes4)
-    // {
-    //     return this.onObjectTransfer.selector;
-    // }
 
     /// @inheritdoc IERC165
     function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool supported) {
