@@ -17,25 +17,23 @@ abstract contract RemoteMintable is IRemoteMintable, IObjectMinterAdmin {
         _;
     }
 
-    modifier onlySetOwner() virtual;
-
     constructor(address minter) {
         if (minter == address(0)) revert InvalidObjectMinterAddress();
         _objectMinter = minter;
     }
 
     /// @inheritdoc IObjectMinterAdmin
-    function addMintPolicy(MintPolicy memory policy) external override onlySetOwner returns (uint32 index) {
+    function addMintPolicy(MintPolicy memory policy) external override returns (uint32 index) {
         index = IObjectMinter(_objectMinter).mintPolicyAdd(policy);
     }
 
     /// @inheritdoc IObjectMinterAdmin
-    function disableMintPolicy(uint32 index) external override onlySetOwner {
+    function disableMintPolicy(uint32 index) external override {
         IObjectMinter(_objectMinter).mintPolicyDisable(index);
     }
 
     /// @inheritdoc IObjectMinterAdmin
-    function enableMintPolicy(uint32 index) external override onlySetOwner {
+    function enableMintPolicy(uint32 index) external override {
         IObjectMinter(_objectMinter).mintPolicyEnable(index);
     }
 

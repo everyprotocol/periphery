@@ -29,8 +29,6 @@ abstract contract Interoperable is IInteroperable, ISetRegistryAdmin {
         _;
     }
 
-    modifier onlySetOwner() virtual;
-
     constructor(address setr) {
         _setRegistry = setr;
         _omniRegistry = ISoke(setr).omniRegistry();
@@ -39,7 +37,7 @@ abstract contract Interoperable is IInteroperable, ISetRegistryAdmin {
     }
 
     /// @inheritdoc ISetRegistryAdmin
-    function registerSet(bytes32 data) external override onlySetOwner returns (uint64 id, Descriptor memory desc) {
+    function registerSet(bytes32 data) external override returns (uint64 id, Descriptor memory desc) {
         return ISetRegistry(_setRegistry).setRegister(data);
     }
 

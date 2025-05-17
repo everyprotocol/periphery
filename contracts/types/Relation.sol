@@ -35,10 +35,23 @@ struct Arc {
 /// @notice Defines who is authorized to initiate a relation
 enum RelationInitiator {
     Owner, // The owner of the object
-    Holder, // A holder of a specific token (Value, Unique, or Object)
     Preset, // A specified address
+    ValueHolder, // A holder of a value token
+    UniqueHolder, // A holder of a unique token
+    ObjectHolder, // A holder of an object token
     Eligible, // An address that passes a verifiction
     Anyone // Any address
+
+}
+
+/// @notice Defines who is allowed to call `unrelate()`
+enum RelationTerminator {
+    TailOwner, // Only the current tail owner
+    HeadOwner, // Only the current head owner
+    Either, // Either tail or head owner
+    Neither, // Anyone except tail and head owner
+    Anyone, // Absolutely anyone
+    Nobody // No one (permanent link)
 
 }
 
@@ -52,17 +65,6 @@ struct RelationGrant {
     uint64 kind; // Optional filter: applies to peers with a specific kind id (0 = no restriction)
     uint64 set; // Optional filter: applies to peers with a specific set id (0 = no restriction)
     bytes32 extra; // Encoded RelationInitiatorData, see variants below
-}
-
-/// @notice Defines who is allowed to call `unrelate()`
-enum RelationTerminator {
-    TailOwner, // Only the current tail owner
-    HeadOwner, // Only the current head owner
-    Either, // Either tail or head owner
-    Neither, // Anyone except tail and head owner
-    Anyone, // Absolutely anyone
-    Nobody // No one (permanent link)
-
 }
 
 /// @notice Defines how ownership of the tail object changes during relate/unrelate
@@ -98,24 +100,35 @@ struct RelationRule {
 }
 
 library RelationLib {
-    /// @notice Data for Delegate-based authorization
-    struct RelationInitiatorDataPreset {
-        uint96 padding;
-        address delegateAddr; // Authorized address allowed to initiate the relation
-    }
-
-    /// @notice Data for Verified-based authorization
-    struct RelationInitiatorDataEligible {
-        uint96 padding;
-        address contractAddr; // Address of the rule-verifying contract
-    }
-
     /// @notice Data for Holder-based authorization
     struct RelationInitiatorDataHolder {
-        TokenType tokenType; // Value, Unique, or Object
-        uint8 padding;
-        uint48 tokenSet; // The set ID of the token
-        uint64 tokenId; // The token ID of uniques or objects, 0 for values
-        uint128 tokenAmount; // The requried amount of values, 1 for uniques or objects
+        uint64 set; // The set ID for objects, 0 for values/uniques
+        uint64 id; // The id/index for uniques/objects, 0 for values
+        uint128 amount; // The requried amount for values, 1 for uniques/objects
+    }
+
+    /// @notice Pack a preset delegate address into bytes32
+    function packPresetData(address delegate) internal pure returns (bytes32) {
+        return bytes32(uint256(uint160(delegate)));
+    }
+
+    /// @notice Pack an eligible contract address into bytes32
+    function packEligibleData(address contract_) internal pure returns (bytes32) {
+        return bytes32(uint256(uint160(contract_)));
+    }
+
+    /// @notice Pack a value token holder spec (value index + amount) into bytes32
+    function packValueHolderData(uint64 index, uint128 amount) internal pure returns (bytes32) {
+        return bytes32((uint256(index) << 128) | uint256(amount));
+    }
+
+    /// @notice Pack a unique token holder spec (unique index + amount=1) into bytes32
+    function packUniqueHolderData(uint64 index, uint128 amount) internal pure returns (bytes32) {
+        return packValueHolderData(index, amount);
+    }
+
+    /// @notice Pack an object token holder spec (set + id + amount=1) into bytes32
+    function packObjectHolderData(uint64 set, uint64 id) internal pure returns (bytes32) {
+        return bytes32((uint256(set) << 192) | (uint256(id) << 128) | uint256(1));
     }
 }

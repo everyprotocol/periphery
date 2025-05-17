@@ -18,11 +18,6 @@ contract SetFullFeatured is Ownable, Interoperable, RemoteMintable, SetERC1155Co
     uint64 public _kindId;
     uint32 public _kindRev;
 
-    modifier onlySetOwner() override(Interoperable, RemoteMintable) {
-        _checkOwner();
-        _;
-    }
-
     constructor(address owner, address minter, address setr, uint64 kindId, uint32 kindRev)
         Ownable(owner)
         Interoperable(setr)
@@ -87,6 +82,7 @@ contract SetFullFeatured is Ownable, Interoperable, RemoteMintable, SetERC1155Co
         Descriptor memory desc = Descriptor(0, 1, _kindRev, _setRev, _kindId, _setId);
         bytes32[] memory elems = data.length > 0 ? abi.decode(data, (bytes32[])) : new bytes32[](0);
         desc = _create(id, desc, elems, to);
+        _postCreate(id, desc, elems, to);
     }
 
     function _kindRevision(uint64 kindId, uint32 kindRev0) internal view virtual override returns (uint32) {
