@@ -8,7 +8,11 @@ out/
 /broadcast/**/dry-run/
 
 # Docs
-docs/
+docs/*
+# But don't ignore the theme folder inside docs/
+!docs/theme/
+# Don't ignore contents of theme
+!docs/theme/**
 
 # Dotenv file
 .env
