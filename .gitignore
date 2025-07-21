@@ -9,10 +9,11 @@ out/
 
 # Docs
 docs/*
-# But don't ignore the theme folder inside docs/
+# But don't ignore inside docs/
 !docs/theme/
-# Don't ignore contents of theme
-!docs/theme/**
+!docs/theme/favicon.svg
+!docs/additional.toml
+!docs/vercel.js
 
 # Dotenv file
 .env

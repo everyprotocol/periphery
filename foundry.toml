@@ -13,4 +13,5 @@ auto_detect_license = true
 src = "contracts"
 title = "Every Protocol – Periphery"
 repository = "https://github.com/everyprotocol/periphery"
+book = "./docs/additional.toml"
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
