@@ -1,115 +1,53 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {ISoke} from "../interfaces/ISoke.sol";
-import {ISetRegistry} from "../interfaces/core/ISetRegistry.sol";
 import {Descriptor, IERC165, IInteroperable} from "../interfaces/user/IInteroperable.sol";
-import {ISetRegistryAdmin} from "../interfaces/user/ISetRegistryAdmin.sol";
+import {SetContext} from "./SetContext.sol";
 
-abstract contract Interoperable is IInteroperable, ISetRegistryAdmin {
-    error InvalidRegistryAddress();
-    error CallerNotSetRegistry();
+/// @title Interoperable
+/// @notice Base contract to enable object-level interoperability via the OmniRegistry.
+/// @dev Implements the IInteroperable interface and restricts callbacks to only the configured OmniRegistry.
+abstract contract Interoperable is IInteroperable {
     error CallerNotOmniRegistry();
 
-    address internal _setRegistry;
-    address internal _omniRegistry;
-    address internal _kindRegistry;
-    address internal _elemRegistry;
-
-    uint64 internal _setId;
-    uint32 internal _setRev;
-
-    modifier onlySetRegistry() {
-        if (msg.sender != _setRegistry) revert CallerNotSetRegistry();
-        _;
-    }
-
+    /// @dev Restricts execution to only the configured OmniRegistry.
     modifier onlyOmniRegistry() {
-        if (msg.sender != _omniRegistry) revert CallerNotOmniRegistry();
+        if (msg.sender != SetContext.getOmniRegistry()) revert CallerNotOmniRegistry();
         _;
     }
 
-    constructor(address setr) {
-        _setRegistry = setr;
-        _omniRegistry = ISoke(setr).omniRegistry();
-        _kindRegistry = ISoke(setr).kindRegistry();
-        _elemRegistry = ISoke(setr).elementRegistry();
-    }
-
-    /// @inheritdoc ISetRegistryAdmin
-    function registerSet(bytes32 data) external override returns (uint64 id, Descriptor memory desc) {
-        return ISetRegistry(_setRegistry).setRegister(data);
-    }
-
-    /// @inheritdoc ISetRegistryAdmin
-    function updateSet(bytes32 data) external returns (uint64 id, Descriptor memory desc) {
-        return ISetRegistry(_setRegistry).setUpdate(data);
-    }
-
-    /// @inheritdoc ISetRegistryAdmin
-    function upgradeSet(uint32 kindRev0, uint32 setRev0) external returns (uint64 id, Descriptor memory desc) {
-        return ISetRegistry(_setRegistry).setUpgrade(kindRev0, setRev0);
-    }
-
-    /// @inheritdoc ISetRegistryAdmin
-    function touchSet() external returns (uint64 id, Descriptor memory desc) {
-        return ISetRegistry(_setRegistry).setTouch();
+    /// @inheritdoc IInteroperable
+    function onObjectRelate(uint64 id, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
+        external
+        override
+        onlyOmniRegistry
+        returns (Descriptor memory od)
+    {
+        // Must be implemented by inheriting contract
     }
 
     /// @inheritdoc IInteroperable
-    function onSetRegister(uint64 set, Descriptor memory meta)
+    function onObjectUnrelate(uint64 id, uint64 rel, uint64 data, uint64 tailSet, uint64 tailId, uint64 tailKind)
         external
-        virtual
         override
-        onlySetRegistry
-        returns (bytes4)
+        onlyOmniRegistry
+        returns (Descriptor memory od)
     {
-        _setId = set;
-        _setRev = meta.rev;
-        return this.onSetRegister.selector;
+        // Must be implemented by inheriting contract
     }
 
     /// @inheritdoc IInteroperable
-    function onSetUpdate(uint64 set, Descriptor memory meta)
+    function onObjectTransfer(uint64 id, address from, address to)
         external
-        virtual
         override
-        onlySetRegistry
-        returns (bytes4)
+        onlyOmniRegistry
+        returns (bytes4 selector)
     {
-        set; // Silence unused variable warning
-        _setRev = meta.rev;
-        return this.onSetUpdate.selector;
-    }
-
-    /// @inheritdoc IInteroperable
-    function onSetUpgrade(uint64 set, Descriptor memory meta)
-        external
-        virtual
-        override
-        onlySetRegistry
-        returns (bytes4)
-    {
-        set; // Silence unused variable warning
-        _setRev = meta.rev;
-        return this.onSetUpgrade.selector;
-    }
-
-    /// @inheritdoc IInteroperable
-    function onSetTouch(uint64 set, Descriptor memory meta)
-        external
-        virtual
-        override
-        onlySetRegistry
-        returns (bytes4)
-    {
-        set; // Silence unused variable warning
-        _setRev = meta.rev;
-        return this.onSetTouch.selector;
+        // Must be implemented by inheriting contract
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool supported) {
+    function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool) {
         return interfaceId == type(IInteroperable).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 }

@@ -61,6 +61,13 @@ interface ISetRegistry {
 
     // --- Read Methods ---
 
+    /// @notice Returns the URI template for a given set
+    /// @dev The returned template contains `{id}` and `{rev}` placeholders,
+    ///      which clients should replace with the object ID and revision number.
+    /// @param id Set ID
+    /// @return uri Template URI string for the specified set
+    function setURI(uint64 id) external view returns (string memory uri);
+
     /// @notice Resolves and validates a specific revision
     /// @param id Set ID
     /// @param rev0 Requested revision (0 = latest)

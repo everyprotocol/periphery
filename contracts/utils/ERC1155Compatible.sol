@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import {IERC1155, IERC1155MetadataURI} from "../interfaces/external/IERC1155MetadataURI.sol";
 import {IERC7572} from "../interfaces/external/IERC7572.sol";
-import {Descriptor, IERC165, ISet, SetBase} from "./SetBase.sol";
-import {IERC1155, IERC1155MetadataURI} from "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Descriptor, IERC165, ISet, SetSolo} from "./SetSolo.sol";
 
-abstract contract SetERC1155Compat is SetBase, IERC1155, IERC1155MetadataURI, IERC7572 {
+/// @title ERC1155Compatible
+/// @notice A minimal ERC-1155 wrapper for object tokens in a Set, where each object has a quantity of exactly 1.
+/// @dev Extends SetSolo and conforms to IERC1155, IERC1155MetadataURI, and IERC7572.
+abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, IERC7572 {
     error InvalidTransferAmount();
     error TransferFromIncorrectOwner();
     error LengthMismatch();
@@ -14,7 +16,7 @@ abstract contract SetERC1155Compat is SetBase, IERC1155, IERC1155MetadataURI, IE
     error SelfApproval();
     error NotOwnerNorApproved();
 
-    mapping(address => mapping(address => bool)) private _approvals;
+    mapping(address => mapping(address => bool)) internal _approvals;
 
     /// @inheritdoc IERC1155
     function balanceOf(address account, uint256 id) external view override returns (uint256) {
@@ -63,39 +65,27 @@ abstract contract SetERC1155Compat is SetBase, IERC1155, IERC1155MetadataURI, IE
 
     /// @inheritdoc IERC1155MetadataURI
     function uri(uint256 id) public view override returns (string memory) {
-        return _uri(uint64(id), 0);
+        uint64 id64 = uint64(id);
+        Descriptor memory od = _decriptor(id64, 0);
+        return _tokenURI(id64, od.rev);
     }
 
     /// @inheritdoc IERC7572
     function contractURI() external view override returns (string memory) {
-        return string.concat(_baseURI(), "meta");
+        return _contractURI();
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 interfaceId) external pure virtual override(IERC165, SetBase) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) external pure virtual override(IERC165, SetSolo) returns (bool) {
         return _supportsInterface(interfaceId);
-    }
-
-    function _supportsInterface(bytes4 interfaceId) internal pure returns (bool) {
-        return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC1155MetadataURI).interfaceId
-            || interfaceId == type(IERC1155).interfaceId || interfaceId == type(IERC7572).interfaceId
-            || interfaceId == type(ISet).interfaceId;
-    }
-
-    function _uri() internal view virtual override returns (string memory) {
-        return string.concat(_baseURI(), "{id}/{rev}/meta");
-    }
-
-    function _uri(uint64 id, uint32 rev) internal view virtual returns (string memory) {
-        return string.concat(_baseURI(), Strings.toString(id), "/", Strings.toString(rev), "/meta");
     }
 
     function _safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) internal {
         if (to == address(0)) revert ZeroAddress();
         if (amount != 1) revert InvalidTransferAmount();
-        if (_ownerOf(uint64(id)) != from) revert TransferFromIncorrectOwner();
+        if (_owner(uint64(id)) != from) revert TransferFromIncorrectOwner();
 
-        data; // silence warning
+        data; // Unused
         _transfer(uint64(id), to);
         _postTransfer(uint64(id), from, to);
     }
@@ -110,12 +100,12 @@ abstract contract SetERC1155Compat is SetBase, IERC1155, IERC1155MetadataURI, IE
         if (to == address(0)) revert ZeroAddress();
         if (amounts.length != ids.length) revert LengthMismatch();
 
-        data; // Silence unused variable warning
+        data; // Unused
         address operator = msg.sender;
         for (uint256 i = 0; i < ids.length; ++i) {
             if (amounts[i] != 1) revert InvalidTransferAmount();
             uint64 id = uint64(ids[i]);
-            if (_ownerOf(id) != from) revert TransferFromIncorrectOwner();
+            if (_owner(id) != from) revert TransferFromIncorrectOwner();
             _transfer(id, to);
             emit Transferred(id, from, to);
         }
@@ -130,40 +120,57 @@ abstract contract SetERC1155Compat is SetBase, IERC1155, IERC1155MetadataURI, IE
     }
 
     function _balanceOf(address account, uint256 id) internal view returns (uint256) {
-        return _ownerOf(uint64(id)) == account ? 1 : 0;
+        return _owner(uint64(id)) == account ? 1 : 0;
     }
 
-    function _postCreate(uint64 id, Descriptor memory desc, bytes32[] memory elems, address owner)
+    function _postCreate(uint64 id, Descriptor memory od, bytes32[] memory elems, address owner)
         internal
         virtual
         override
     {
-        emit Created(id, desc, elems, owner);
+        // Set events
+        emit Created(id, od, elems, owner);
+        // ERC1155 events
         emit TransferSingle(msg.sender, address(0), owner, id, 1);
-        emit URI(_uri(id, desc.rev), id);
+        emit URI(_tokenURI(id, od.rev), id);
     }
 
-    function _postUpgrade(uint64 id, Descriptor memory desc, uint32 kindRev, uint32 setRev) internal virtual override {
-        kindRev; // slient warnings
-        setRev; // slient warnings
-        emit Upgraded(id, desc);
-        emit URI(_uri(id, desc.rev), id);
+    function _postUpgrade(uint64 id, Descriptor memory od, uint32 kindRev, uint32 setRev) internal virtual override {
+        (kindRev, setRev); // Unused
+        // Set events
+        emit Upgraded(id, od);
+        // ERC1155 events
+        emit URI(_tokenURI(id, od.rev), id);
     }
 
-    function _postUpdate(uint64 id, Descriptor memory desc, bytes32[] memory elems) internal virtual override {
-        emit Updated(id, desc, elems);
-        emit URI(_uri(id, desc.rev), id);
+    function _postUpdate(uint64 id, Descriptor memory od, bytes32[] memory elems) internal virtual override {
+        // Set events
+        emit Updated(id, od, elems);
+        // ERC1155 events
+        emit URI(_tokenURI(id, od.rev), id);
     }
 
-    function _postTouch(uint64 id, Descriptor memory desc) internal virtual override {
-        emit Touched(id, desc);
-        emit URI(_uri(id, desc.rev), id);
+    function _postTouch(uint64 id, Descriptor memory od) internal virtual override {
+        // Set events
+        emit Touched(id, od);
+        // ERC1155 events
+        emit URI(_tokenURI(id, od.rev), id);
     }
 
     function _postTransfer(uint64 id, address from, address to) internal virtual override {
+        // Set events
         emit Transferred(id, from, to);
+        // ERC1155 events
         emit TransferSingle(msg.sender, from, to, id, 1);
     }
 
-    function _baseURI() internal view virtual returns (string memory);
+    function _supportsInterface(bytes4 interfaceId) internal pure virtual override returns (bool) {
+        return interfaceId == type(IERC165).interfaceId || interfaceId == type(ISet).interfaceId
+            || interfaceId == type(IERC1155).interfaceId || interfaceId == type(IERC1155MetadataURI).interfaceId
+            || interfaceId == type(IERC7572).interfaceId;
+    }
+
+    function _tokenURI(uint64 id, uint32 rev) internal view virtual returns (string memory);
+
+    function _contractURI() internal view virtual returns (string memory);
 }

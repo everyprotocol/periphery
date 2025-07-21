@@ -2,23 +2,26 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor, IERC165, ISet} from "../interfaces/user/ISet.sol";
+import {SetContext} from "@everyprotocol/periphery/utils/SetContext.sol";
 
-abstract contract SetBase is ISet {
+// @title SetSolo
+/// @notice Minimal standalone implementation of the ISet interface for managing object tokens.
+/// @dev Handles object storage, ownership, versioning, and upgrade logic. Intended to be extended by full set contracts.
+abstract contract SetSolo is ISet {
     error CallerNotObjectOwner();
-
     error InvalidObjectId();
+    error UnknownObjectKind();
+    error UnknownObjectSet();
     error InvalidKindRevision();
     error InvalidSetRevision();
-    error InvalidUpgradeRevision();
-
+    error InvalidUpgradeArguments();
     error ObjectAlreadyExists();
     error ObjectNotFound();
-
     error RevisionNotStored();
     error RevisionNotFound();
-
-    error KindRevisionNotFound();
-    error SetRevisionNotFound();
+    error KindUpgradeRejected();
+    error SetUpgradeRejected();
+    error Unimplemented();
 
     struct ObjectData {
         Descriptor desc;
@@ -28,8 +31,9 @@ abstract contract SetBase is ISet {
 
     uint64 private constant ID_MAX = type(uint64).max - 1;
 
-    mapping(uint64 => ObjectData) private _objects;
+    mapping(uint64 => ObjectData) internal _objects;
 
+    /// @dev Restricts function to the current object owner.
     modifier onlyObjectOwner(uint64 id) {
         if (_objects[id].desc.rev == 0) revert ObjectNotFound();
         if (_objects[id].owner != msg.sender) revert CallerNotObjectOwner();
@@ -37,8 +41,25 @@ abstract contract SetBase is ISet {
     }
 
     /// @inheritdoc ISet
+    function create(address to, uint64 id0, bytes calldata data)
+        external
+        virtual
+        returns (uint64 id, Descriptor memory od)
+    {
+        (to, id0, data, id, od); // silient warnings;
+        revert Unimplemented();
+    }
+
+    /// @inheritdoc ISet
+    function update(uint64 id, bytes calldata data) external virtual returns (Descriptor memory od) {
+        (id, data, od); // silient warnings;
+        revert Unimplemented();
+    }
+
+    /// @inheritdoc ISet
     function upgrade(uint64 id, uint32 kindRev0, uint32 setRev0)
         external
+        virtual
         override
         onlyObjectOwner(id)
         returns (Descriptor memory desc)
@@ -49,46 +70,31 @@ abstract contract SetBase is ISet {
     }
 
     /// @inheritdoc ISet
-    function touch(uint64 id) external override onlyObjectOwner(id) returns (Descriptor memory od) {
+    function touch(uint64 id) external virtual override onlyObjectOwner(id) returns (Descriptor memory od) {
         od = _touch(id);
         _postTouch(id, od);
         return od;
     }
 
     /// @inheritdoc ISet
-    function transfer(uint64 id, address to) external override onlyObjectOwner(id) {
+    function transfer(uint64 id, address to) external virtual override onlyObjectOwner(id) {
         address from = _transfer(id, to);
         _postTransfer(id, from, to);
     }
 
     /// @inheritdoc ISet
     function uri() external view override returns (string memory uri_) {
-        uri_ = _uri();
+        uri_ = _objectURI();
     }
 
     /// @inheritdoc ISet
     function owner(uint64 id) external view override returns (address owner_) {
-        owner_ = _ownerOf(id);
-    }
-
-    /// @inheritdoc ISet
-    function revision(uint64 id, uint32 rev0) external view override returns (uint32 rev) {
-        rev = _revision(id, rev0);
+        owner_ = _owner(id);
     }
 
     /// @inheritdoc ISet
     function descriptor(uint64 id, uint32 rev0) external view override returns (Descriptor memory od) {
         od = _decriptor(id, rev0);
-    }
-
-    /// @inheritdoc ISet
-    function elements(uint64 id, uint32 rev0) external view override returns (bytes32[] memory elems) {
-        elems = _elements(id, rev0);
-    }
-
-    /// @inheritdoc ISet
-    function sota(uint64 id) external view override returns (Descriptor memory desc, address owner_) {
-        (desc, owner_) = _sota(id);
     }
 
     /// @inheritdoc ISet
@@ -103,6 +109,10 @@ abstract contract SetBase is ISet {
 
     /// @inheritdoc IERC165
     function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool) {
+        return _supportsInterface(interfaceId);
+    }
+
+    function _supportsInterface(bytes4 interfaceId) internal pure virtual returns (bool) {
         return interfaceId == type(ISet).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 
@@ -116,36 +126,32 @@ abstract contract SetBase is ISet {
         return od;
     }
 
+    function _update(uint64 id, bytes32[] memory elems) internal returns (Descriptor memory) {
+        _objects[id].desc.rev++;
+        _objects[id].elements = elems;
+        return _objects[id].desc;
+    }
+
     function _upgrade(uint64 id, uint32 kindRev0, uint32 setRev0) internal returns (Descriptor memory) {
-        if (kindRev0 == 0 && setRev0 == 0) revert InvalidUpgradeRevision();
+        if (kindRev0 == 0 && setRev0 == 0) revert InvalidUpgradeArguments();
         Descriptor storage od = _objects[id].desc;
         if (kindRev0 > 0) {
             if (kindRev0 <= od.kindRev) revert InvalidKindRevision();
-            if (kindRev0 != _kindRevision(od.kindId, kindRev0)) revert KindRevisionNotFound();
+            if (kindRev0 != _onUpgradeKind(od.kindId, kindRev0)) revert KindUpgradeRejected();
             od.kindRev = kindRev0;
         }
         if (setRev0 > 0) {
             if (setRev0 <= od.setRev) revert InvalidSetRevision();
-            if (setRev0 != _setRevision(od.setId, setRev0)) revert SetRevisionNotFound();
+            if (setRev0 != _onUpgradeSet(od.setId, setRev0)) revert SetUpgradeRejected();
             od.setRev = setRev0;
         }
         od.rev++;
         return od;
     }
 
-    function _update(uint64 id, bytes32[] memory elems) internal returns (Descriptor memory) {
-        ObjectData storage obj = _objects[id];
-        if (obj.desc.rev == 0) revert ObjectNotFound();
-        obj.desc.rev++;
-        obj.elements = elems;
-        return obj.desc;
-    }
-
     function _touch(uint64 id) internal returns (Descriptor memory) {
-        ObjectData storage obj = _objects[id];
-        if (obj.desc.rev == 0) revert ObjectNotFound();
-        obj.desc.rev++;
-        return obj.desc;
+        _objects[id].desc.rev++;
+        return _objects[id].desc;
     }
 
     function _transfer(uint64 id, address to) internal returns (address from) {
@@ -155,9 +161,10 @@ abstract contract SetBase is ISet {
         }
     }
 
-    function _ownerOf(uint64 id) internal view returns (address) {
-        if (_objects[id].desc.rev == 0) revert ObjectNotFound();
-        return _objects[id].owner;
+    function _owner(uint64 id) internal view returns (address) {
+        ObjectData memory obj = _objects[id];
+        if (obj.desc.rev == 0) revert ObjectNotFound();
+        return obj.owner;
     }
 
     function _decriptor(uint64 id, uint32 rev0) internal view returns (Descriptor memory) {
@@ -165,27 +172,6 @@ abstract contract SetBase is ISet {
         if (od.rev == 0) revert ObjectNotFound();
         if (rev0 != 0 && rev0 != od.rev) revert RevisionNotStored();
         return od;
-    }
-
-    function _revision(uint64 id, uint32 rev0) internal view virtual returns (uint32 rev) {
-        uint32 latest = _objects[id].desc.rev;
-        if (latest == 0) revert ObjectNotFound();
-        if (rev0 > latest) revert RevisionNotFound();
-        else if (rev0 > 0) return rev0;
-        else return latest;
-    }
-
-    function _elements(uint64 id, uint32 rev0) internal view returns (bytes32[] memory elems) {
-        Descriptor memory od = _objects[id].desc;
-        if (od.rev == 0) revert ObjectNotFound();
-        if (rev0 != 0 && rev0 != od.rev) revert RevisionNotStored();
-        elems = _objects[id].elements;
-    }
-
-    function _sota(uint64 id) internal view returns (Descriptor memory od, address owner_) {
-        od = _objects[id].desc;
-        if (od.rev == 0) revert ObjectNotFound();
-        owner_ = _objects[id].owner;
     }
 
     function _snapshot(uint64 id, uint32 rev0) internal view returns (Descriptor memory od, bytes32[] memory elems) {
@@ -200,8 +186,7 @@ abstract contract SetBase is ISet {
     }
 
     function _postUpgrade(uint64 id, Descriptor memory od, uint32 kindRev0, uint32 setRev0) internal virtual {
-        kindRev0; // slient warnings
-        setRev0; // slient warnings
+        (kindRev0, setRev0); // Unused
         emit Upgraded(id, od);
     }
 
@@ -217,9 +202,29 @@ abstract contract SetBase is ISet {
         emit Transferred(id, from, to);
     }
 
-    function _kindRevision(uint64 kindId, uint32 kindRev0) internal view virtual returns (uint32);
+    function _onUpgradeKind(uint64 kindId, uint32 kindRev0) internal view virtual returns (uint32) {
+        if (kindId != SetContext.getKindId()) revert UnknownObjectKind();
+        uint32 kindRev = SetContext.getKindRev();
+        if (kindRev0 == 0) {
+            return kindRev;
+        } else if (kindRev0 <= kindRev) {
+            return kindRev0;
+        } else {
+            return 0;
+        }
+    }
 
-    function _setRevision(uint64 setId, uint32 setRev0) internal view virtual returns (uint32);
+    function _onUpgradeSet(uint64 setId, uint32 setRev0) internal view virtual returns (uint32) {
+        if (setId != SetContext.getSetId()) revert UnknownObjectSet();
+        uint32 setRev = SetContext.getSetRev();
+        if (setRev0 == 0) {
+            return setRev;
+        } else if (setRev0 <= setRev) {
+            return setRev0;
+        } else {
+            return 0;
+        }
+    }
 
-    function _uri() internal view virtual returns (string memory);
+    function _objectURI() internal view virtual returns (string memory);
 }
