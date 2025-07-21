@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor} from "../../types/Descriptor.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "../external/IERC165.sol";
 
 /// @title ISet
 /// @notice Core interface for set contracts

@@ -1,24 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IObjectMinter, MintPolicy} from "../interfaces/core/IObjectMinter.sol";
-import {IObjectMinterHook} from "../interfaces/user/IObjectMinterHook.sol";
+import {IERC165, IObjectMinterHook} from "../interfaces/user/IObjectMinterHook.sol";
 import {SetContext} from "./SetContext.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /// @title ObjectMinterHook
 /// @notice Base contract for integrating with an external ObjectMinter.
 /// @dev Implements the IObjectMinterHook interface and enforces that only the configured ObjectMinter
 ///      can trigger the minting logic. Inheriting contracts must implement `_mint(...)`.
 abstract contract ObjectMinterHook is IObjectMinterHook {
-    error InvalidObjectMinterAddress();
-    error ObjectIdNotSpecified();
     error CallerNotObjectMinter();
 
     /// @notice Initializes the contract with the configured ObjectMinter address.
     /// @param minter The address of the ObjectMinter.
     constructor(address minter) {
-        if (minter == address(0)) revert InvalidObjectMinterAddress();
         SetContext.setObjectMinter(minter);
     }
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import {IERC1155, IERC1155MetadataURI} from "../interfaces/external/IERC1155MetadataURI.sol";
 import {IERC7572} from "../interfaces/external/IERC7572.sol";
 import {Descriptor, IERC165, ISet, SetSolo} from "./SetSolo.sol";
-import {IERC1155, IERC1155MetadataURI} from "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
 
 /// @title ERC1155Compatible
 /// @notice A minimal ERC-1155 wrapper for object tokens in a Set, where each object has a quantity of exactly 1.
@@ -164,7 +164,7 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
         emit TransferSingle(msg.sender, from, to, id, 1);
     }
 
-    function _supportsInterface(bytes4 interfaceId) internal pure returns (bool) {
+    function _supportsInterface(bytes4 interfaceId) internal pure virtual override returns (bool) {
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(ISet).interfaceId
             || interfaceId == type(IERC1155).interfaceId || interfaceId == type(IERC1155MetadataURI).interfaceId
             || interfaceId == type(IERC7572).interfaceId;

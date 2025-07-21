@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {Descriptor, ISetRegistryHook} from "../interfaces/user/ISetRegistryHook.sol";
+import {Descriptor, IERC165, ISetRegistryHook} from "../interfaces/user/ISetRegistryHook.sol";
 import {SetContext} from "./SetContext.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /// @title SetRegistryHook
 /// @notice Base implementation of `ISetRegistryHook` for handling set lifecycle callbacks.

@@ -42,7 +42,6 @@ abstract contract SetRegistryAdmin {
         return _setRegistry().setTouch();
     }
 
-    /// @dev Returns the SetRegistry instance from the current SetContext.
     function _setRegistry() private view returns (ISetRegistry) {
         return ISetRegistry(SetContext.getSetRegistry());
     }

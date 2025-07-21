@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.28;
 
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "../external/IERC165.sol";
 
 /// @title IObjectMinterHook
 /// @notice Interface for set contracts that support minting via ObjectMinter
@@ -21,8 +21,4 @@ interface IObjectMinterHook is IERC165 {
     function onObjectMint(address operator, address to, uint64 id0, uint256 context, bytes memory data)
         external
         returns (bytes4 selector, uint64 id);
-
-    /// @notice Returns the address of the ObjectMinter contract associated with this set
-    /// @return minter Address of the ObjectMinter
-    function objectMinter() external view returns (address minter);
 }

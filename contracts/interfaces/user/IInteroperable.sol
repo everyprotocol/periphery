@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor} from "../../types/Descriptor.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "../external/IERC165.sol";
 
 /// @title IInteroperable
 /// @notice Interface for set contracts that support object-level interoperability

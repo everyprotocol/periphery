@@ -9,10 +9,6 @@ import {SetContext} from "./SetContext.sol";
 /// @dev Designed to be inherited by set contracts. Assumes `SetContext` is properly configured.
 ///      All functions apply to the calling set and must be protected by access control.
 abstract contract ObjectMinterAdmin {
-    error InvalidObjectMinterAddress();
-    error ObjectIdNotSpecified();
-    error CallerNotObjectMinter();
-
     /// @notice Adds a new minting policy for this set.
     /// @dev Only callable by the set owner or an authorized admin.
     /// @param policy The minting policy to add.
@@ -35,9 +31,6 @@ abstract contract ObjectMinterAdmin {
         _objectMinter().mintPolicyEnable(index);
     }
 
-    /// @notice Returns the configured ObjectMinter for this set.
-    /// @dev Reverts if the ObjectMinter is not configured.
-    /// @return The IObjectMinter instance.
     function _objectMinter() private view returns (IObjectMinter) {
         return IObjectMinter(SetContext.getObjectMinter());
     }

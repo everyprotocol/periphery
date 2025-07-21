@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor, IERC165, ISet} from "../interfaces/user/ISet.sol";
+import {SetContext} from "@everyprotocol/periphery/utils/SetContext.sol";
 
 // @title SetSolo
 /// @notice Minimal standalone implementation of the ISet interface for managing object tokens.
@@ -9,15 +10,17 @@ import {Descriptor, IERC165, ISet} from "../interfaces/user/ISet.sol";
 abstract contract SetSolo is ISet {
     error CallerNotObjectOwner();
     error InvalidObjectId();
+    error UnknownObjectKind();
+    error UnknownObjectSet();
     error InvalidKindRevision();
     error InvalidSetRevision();
-    error InvalidUpgradeRevision();
+    error InvalidUpgradeArguments();
     error ObjectAlreadyExists();
     error ObjectNotFound();
     error RevisionNotStored();
     error RevisionNotFound();
-    error KindRevisionNotFound();
-    error SetRevisionNotFound();
+    error KindUpgradeRejected();
+    error SetUpgradeRejected();
     error Unimplemented();
 
     struct ObjectData {
@@ -81,7 +84,7 @@ abstract contract SetSolo is ISet {
 
     /// @inheritdoc ISet
     function uri() external view override returns (string memory uri_) {
-        uri_ = _uri();
+        uri_ = _objectURI();
     }
 
     /// @inheritdoc ISet
@@ -106,6 +109,10 @@ abstract contract SetSolo is ISet {
 
     /// @inheritdoc IERC165
     function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool) {
+        return _supportsInterface(interfaceId);
+    }
+
+    function _supportsInterface(bytes4 interfaceId) internal pure virtual returns (bool) {
         return interfaceId == type(ISet).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 
@@ -120,24 +127,22 @@ abstract contract SetSolo is ISet {
     }
 
     function _update(uint64 id, bytes32[] memory elems) internal returns (Descriptor memory) {
-        ObjectData storage obj = _objects[id];
-        if (obj.desc.rev == 0) revert ObjectNotFound();
-        obj.desc.rev++;
-        obj.elements = elems;
-        return obj.desc;
+        _objects[id].desc.rev++;
+        _objects[id].elements = elems;
+        return _objects[id].desc;
     }
 
     function _upgrade(uint64 id, uint32 kindRev0, uint32 setRev0) internal returns (Descriptor memory) {
-        if (kindRev0 == 0 && setRev0 == 0) revert InvalidUpgradeRevision();
+        if (kindRev0 == 0 && setRev0 == 0) revert InvalidUpgradeArguments();
         Descriptor storage od = _objects[id].desc;
         if (kindRev0 > 0) {
             if (kindRev0 <= od.kindRev) revert InvalidKindRevision();
-            if (kindRev0 != _resolveKindRev(od.kindId, kindRev0)) revert KindRevisionNotFound();
+            if (kindRev0 != _onUpgradeKind(od.kindId, kindRev0)) revert KindUpgradeRejected();
             od.kindRev = kindRev0;
         }
         if (setRev0 > 0) {
             if (setRev0 <= od.setRev) revert InvalidSetRevision();
-            if (setRev0 != _resolveSetRev(od.setId, setRev0)) revert SetRevisionNotFound();
+            if (setRev0 != _onUpgradeSet(od.setId, setRev0)) revert SetUpgradeRejected();
             od.setRev = setRev0;
         }
         od.rev++;
@@ -145,10 +150,8 @@ abstract contract SetSolo is ISet {
     }
 
     function _touch(uint64 id) internal returns (Descriptor memory) {
-        ObjectData storage obj = _objects[id];
-        if (obj.desc.rev == 0) revert ObjectNotFound();
-        obj.desc.rev++;
-        return obj.desc;
+        _objects[id].desc.rev++;
+        return _objects[id].desc;
     }
 
     function _transfer(uint64 id, address to) internal returns (address from) {
@@ -159,8 +162,9 @@ abstract contract SetSolo is ISet {
     }
 
     function _owner(uint64 id) internal view returns (address) {
-        if (_objects[id].desc.rev == 0) revert ObjectNotFound();
-        return _objects[id].owner;
+        ObjectData memory obj = _objects[id];
+        if (obj.desc.rev == 0) revert ObjectNotFound();
+        return obj.owner;
     }
 
     function _decriptor(uint64 id, uint32 rev0) internal view returns (Descriptor memory) {
@@ -198,9 +202,29 @@ abstract contract SetSolo is ISet {
         emit Transferred(id, from, to);
     }
 
-    function _uri() internal view virtual returns (string memory);
+    function _onUpgradeKind(uint64 kindId, uint32 kindRev0) internal view virtual returns (uint32) {
+        if (kindId != SetContext.getKindId()) revert UnknownObjectKind();
+        uint32 kindRev = SetContext.getKindRev();
+        if (kindRev0 == 0) {
+            return kindRev;
+        } else if (kindRev0 <= kindRev) {
+            return kindRev0;
+        } else {
+            return 0;
+        }
+    }
 
-    function _resolveKindRev(uint64 kindId, uint32 kindRev0) internal view virtual returns (uint32);
+    function _onUpgradeSet(uint64 setId, uint32 setRev0) internal view virtual returns (uint32) {
+        if (setId != SetContext.getSetId()) revert UnknownObjectSet();
+        uint32 setRev = SetContext.getSetRev();
+        if (setRev0 == 0) {
+            return setRev;
+        } else if (setRev0 <= setRev) {
+            return setRev0;
+        } else {
+            return 0;
+        }
+    }
 
-    function _resolveSetRev(uint64 setId, uint32 setRev0) internal view virtual returns (uint32);
+    function _objectURI() internal view virtual returns (string memory);
 }

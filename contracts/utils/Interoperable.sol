@@ -47,7 +47,7 @@ abstract contract Interoperable is IInteroperable {
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool supported) {
+    function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool) {
         return interfaceId == type(IInteroperable).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 }
