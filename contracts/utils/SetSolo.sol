@@ -116,13 +116,46 @@ abstract contract SetSolo is ISet {
         return interfaceId == type(ISet).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 
-    function _create(uint64 id, Descriptor memory od, bytes32[] memory elems, address owner_)
+    function _create(address to, uint64 id, Descriptor memory od, bytes32[] memory elems)
         internal
         returns (Descriptor memory)
     {
         if (id == 0 || id >= ID_MAX) revert InvalidObjectId();
         if (_objects[id].desc.rev != 0) revert ObjectAlreadyExists();
-        _objects[id] = ObjectData(od, owner_, elems);
+        _objects[id] = ObjectData(od, to, elems);
+        return od;
+    }
+
+    function _create0(address to, uint64 id, Descriptor memory od) internal returns (Descriptor memory) {
+        if (id == 0 || id >= ID_MAX) revert InvalidObjectId();
+        if (_objects[id].desc.rev != 0) revert ObjectAlreadyExists();
+        bytes32[] memory elems = new bytes32[](0);
+        _objects[id] = ObjectData(od, to, elems);
+        return od;
+    }
+
+    function _create1(address to, uint64 id, Descriptor memory od, bytes32 elem0)
+        internal
+        returns (Descriptor memory)
+    {
+        if (id == 0 || id >= ID_MAX) revert InvalidObjectId();
+        if (_objects[id].desc.rev != 0) revert ObjectAlreadyExists();
+        bytes32[] memory elems = new bytes32[](1);
+        elems[0] = elem0;
+        _objects[id] = ObjectData(od, to, elems);
+        return od;
+    }
+
+    function _create2(address to, uint64 id, Descriptor memory od, bytes32 elem0, bytes32 elem1)
+        internal
+        returns (Descriptor memory)
+    {
+        if (id == 0 || id >= ID_MAX) revert InvalidObjectId();
+        if (_objects[id].desc.rev != 0) revert ObjectAlreadyExists();
+        bytes32[] memory elems = new bytes32[](2);
+        elems[0] = elem0;
+        elems[1] = elem1;
+        _objects[id] = ObjectData(od, to, elems);
         return od;
     }
 
@@ -181,8 +214,8 @@ abstract contract SetSolo is ISet {
         elems = _objects[id].elements;
     }
 
-    function _postCreate(uint64 id, Descriptor memory od, bytes32[] memory elems, address owner_) internal virtual {
-        emit Created(id, od, elems, owner_);
+    function _postCreate(address to, uint64 id, Descriptor memory od, bytes32[] memory elems) internal virtual {
+        emit Created(id, od, elems, to);
     }
 
     function _postUpgrade(uint64 id, Descriptor memory od, uint32 kindRev0, uint32 setRev0) internal virtual {

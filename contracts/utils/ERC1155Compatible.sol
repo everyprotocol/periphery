@@ -123,7 +123,7 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
         return _owner(uint64(id)) == account ? 1 : 0;
     }
 
-    function _postCreate(uint64 id, Descriptor memory od, bytes32[] memory elems, address owner)
+    function _postCreate(address owner, uint64 id, Descriptor memory od, bytes32[] memory elems)
         internal
         virtual
         override
