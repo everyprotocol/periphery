@@ -61,12 +61,22 @@ interface ISetRegistry {
 
     // --- Read Methods ---
 
-    /// @notice Returns the URI template for a given set
-    /// @dev The returned template contains `{id}` and `{rev}` placeholders,
-    ///      which clients should replace with the object ID and revision number.
+    /// @notice Returns the URI template for objects in the given set
+    /// @dev The returned template includes `{id}` and `{rev}` placeholders,
+    ///      which clients should replace with the object ID and revision number
+    ///      to construct the full object URI off-chain.
     /// @param id Set ID
-    /// @return uri Template URI string for the specified set
+    /// @return uri Template URI string for objects in the specified set
     function setURI(uint64 id) external view returns (string memory uri);
+
+    /// @notice Returns the fully resolved URI for a specific object in a set
+    /// @dev Substitutes `{id}` and `{rev}` in the set’s URI template using the
+    ///      provided object ID and revision.
+    /// @param id Set ID
+    /// @param objId Object ID (within the set)
+    /// @param objRev Object revision number
+    /// @return uri Fully resolved URI string for the specified object revision
+    function setURI(uint64 id, uint64 objId, uint32 objRev) external view returns (string memory uri);
 
     /// @notice Resolves and validates a specific revision
     /// @param id Set ID
