@@ -6,9 +6,9 @@ import {Descriptor} from "../../types/Descriptor.sol";
 /// @title IObjectInteraction
 /// @notice Handles object interactions via directed relations (arcs).
 /// @notice Encodings:
-/// - SID  :                                         {uint64 set | uint64 id} → uint128
-/// - Node : {uint64 data | uint32 _ | uint32 grant | uint64 set | uint64 id} → uint256
-/// - Arc  : {uint64 data |              uint64 rel | uint64 set | uint64 id} → uint256
+/// - SID  :                                         `{uint64 set | uint64 id}` → `uint128`
+/// - Node : `{uint64 data | uint32 _ | uint32 grant | uint64 set | uint64 id}` → `uint256`
+/// - Arc  : `{uint64 data |              uint64 rel | uint64 set | uint64 id}` → `uint256`
 interface IObjectInteraction {
     /// @notice Emitted when a tail is linked to a head through a relation
     /// @param head Encoded SID of the head object
