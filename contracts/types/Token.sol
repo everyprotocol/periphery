@@ -11,39 +11,34 @@ enum TokenStandard {
 
 enum TokenType {
     None,
-    Value,
-    Unique,
+    Fungible,
+    Opaque,
     Object
 }
 
 struct TokenSpec {
-    TokenStandard std; // bits 248–255 (8 bits)
-    uint8 decimals; // bits 240–247 (8 bits)
-    bytes30 symbol; // bits 0–239 (30 bytes = 240 bits), left-aligned and zero-padded
+    TokenStandard std;
+    uint8 decimals;
+    bytes30 symbol; // left-padded
 }
 
-type TokenSpecPacked is bytes32;
-
-using TokenSpecAccessors for TokenSpecPacked global;
-
-library TokenLib {
+library TokenSpecLib {
     function pack(TokenStandard std, uint8 decimals, bytes30 symbol) internal pure returns (bytes32) {
-        return (bytes32(uint256(uint8(std)) << 248)) | (bytes32(uint256(decimals) << 240)) | bytes32(symbol);
+        return (bytes32(uint256(uint8(std)) << 248)) | (bytes32(uint256(decimals) << 240)) | (bytes32(symbol) >> 16);
     }
 
     function unpack(bytes32 t) internal pure returns (TokenSpec memory) {
         TokenStandard std = TokenStandard(uint8(uint256(t >> 248)));
         uint8 decimals = uint8(uint256(t >> 240));
-        bytes30 symbol;
-        assembly {
-            symbol := t
-        }
+        bytes30 symbol = bytes30(t);
         return TokenSpec({std: std, decimals: decimals, symbol: symbol});
     }
 
     function toBytes30(string memory s) internal pure returns (bytes30 out) {
+        bytes memory b = bytes(s);
+        if (b.length == 0) return 0x0;
         assembly {
-            out := mload(add(s, 32))
+            out := mload(add(b, 32))
         }
     }
 
@@ -57,31 +52,5 @@ library TokenLib {
             out[i] = symbol[i];
         }
         return string(out);
-    }
-}
-
-library TokenSpecAccessors {
-    function std(bytes32 t) internal pure returns (uint8) {
-        return uint8(uint256(t >> 248));
-    }
-
-    function decimals(bytes32 t) internal pure returns (uint8) {
-        return uint8(uint256(t >> 240));
-    }
-
-    function symbol(bytes32 t) internal pure returns (bytes30) {
-        return bytes30(t);
-    }
-
-    function std(TokenSpecPacked t) internal pure returns (uint8) {
-        return std(TokenSpecPacked.unwrap(t));
-    }
-
-    function decimals(TokenSpecPacked t) internal pure returns (uint8) {
-        return decimals(TokenSpecPacked.unwrap(t));
-    }
-
-    function symbol(TokenSpecPacked t) internal pure returns (bytes30) {
-        return symbol(TokenSpecPacked.unwrap(t));
     }
 }

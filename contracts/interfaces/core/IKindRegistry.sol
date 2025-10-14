@@ -2,7 +2,6 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor} from "../../types/Descriptor.sol";
-import {ElementType} from "../../types/Element.sol";
 
 /// @title IKindRegistry
 /// @notice Interface for managing and registering object kinds
@@ -18,7 +17,7 @@ interface IKindRegistry {
     /// @param rels Supported relation IDs
     /// @param owner Owner address of the kind
     event KindRegistered(
-        uint64 id, Descriptor desc, bytes32 code, bytes32 data, ElementType[] elemSpec, uint64[] rels, address owner
+        uint64 id, Descriptor desc, bytes32 code, bytes32 data, uint8[] elemSpec, uint64[] rels, address owner
     );
 
     /// @notice Emitted when a kind is updated
@@ -54,7 +53,7 @@ interface IKindRegistry {
     /// @param rels Supported relation IDs
     /// @return id New kind ID
     /// @return desc Descriptor after registration
-    function kindRegister(bytes32 code, bytes32 data, ElementType[] memory elemSpec, uint64[] memory rels)
+    function kindRegister(bytes32 code, bytes32 data, uint8[] memory elemSpec, uint64[] memory rels)
         external
         returns (uint64 id, Descriptor memory desc);
 
