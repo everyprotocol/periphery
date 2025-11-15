@@ -40,9 +40,10 @@ interface IKindRegistry {
 
     /// @notice Emitted when kind ownership is transferred
     /// @param id Kind ID
+    /// @param desc Descriptor after the transfer
     /// @param from Previous owner
     /// @param to New owner
-    event KindTransferred(uint64 id, address from, address to);
+    event KindTransferred(uint64 id, Descriptor desc, address from, address to);
 
     // --- Write Methods ---
 
@@ -117,10 +118,7 @@ interface IKindRegistry {
     /// @param rev0 Revision to query (0 = latest)
     /// @return desc Descriptor at the revision
     /// @return elems Element hashes of the kind at the revision
-    function kindSnapshot(uint64 id, uint32 rev0)
-        external
-        view
-        returns (Descriptor memory desc, bytes32[] memory elems);
+    function kindSnapshot(uint64 id, uint32 rev0) external view returns (Descriptor memory desc, bytes32[] memory elems);
 
     /// @notice Returns the current owner of a kind
     /// @param id Kind ID

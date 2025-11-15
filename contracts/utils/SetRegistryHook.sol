@@ -45,13 +45,7 @@ abstract contract SetRegistryHook is ISetRegistryHook {
     }
 
     /// @inheritdoc ISetRegistryHook
-    function onSetUpgrade(uint64 set, Descriptor memory od)
-        external
-        virtual
-        override
-        onlySetRegistry
-        returns (bytes4)
-    {
+    function onSetUpgrade(uint64 set, Descriptor memory od) external virtual override onlySetRegistry returns (bytes4) {
         set; // Unused
         SetContext.setSetRev(od.rev);
         return this.onSetUpgrade.selector;

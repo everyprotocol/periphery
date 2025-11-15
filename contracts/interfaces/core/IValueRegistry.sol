@@ -37,9 +37,10 @@ interface IValueRegistry {
 
     /// @notice Emitted when ownership of a value is transferred
     /// @param id ID of the value
+    /// @param desc Descriptor after the transfer
     /// @param from Previous owner address
     /// @param to New owner address
-    event ValueTransferred(uint64 id, address from, address to);
+    event ValueTransferred(uint64 id, Descriptor desc, address from, address to);
 
     // --- Write Methods ---
 

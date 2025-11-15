@@ -35,24 +35,10 @@ struct Arc {
 /// @notice Defines who is authorized to initiate a relation
 enum RelationInitiator {
     Owner, // The owner of the object
+    Holder, // A holder of a specific token (Value, Unique, or Object)
     Preset, // A specified address
-    ValueHolder, // A holder of a value token
-    UniqueHolder, // A holder of a unique token
-    ObjectHolder, // A holder of an object token
     Eligible, // An address that passes a verifiction
     Anyone // Any address
-
-}
-
-/// @notice Defines who is allowed to call `unrelate()`
-enum RelationTerminator {
-    TailOwner, // Only the current tail owner
-    HeadOwner, // Only the current head owner
-    Either, // Either tail or head owner
-    Neither, // Anyone except tail and head owner
-    Anyone, // Absolutely anyone
-    Nobody // No one (permanent link)
-
 }
 
 /// @notice Describes a granted permission to initiate a relation
@@ -65,6 +51,16 @@ struct RelationGrant {
     uint64 kind; // Optional filter: applies to peers with a specific kind id (0 = no restriction)
     uint64 set; // Optional filter: applies to peers with a specific set id (0 = no restriction)
     bytes32 extra; // Encoded RelationInitiatorData, see variants below
+}
+
+/// @notice Defines who is allowed to call `unrelate()`
+enum RelationTerminator {
+    TailOwner, // Only the current tail owner
+    HeadOwner, // Only the current head owner
+    Either, // Either tail or head owner
+    Neither, // Anyone except tail and head owner
+    Anyone, // Absolutely anyone
+    Nobody // No one (permanent link)
 }
 
 /// @notice Defines how ownership of the tail object changes during relate/unrelate
@@ -99,36 +95,63 @@ struct RelationRule {
     bytes20 extra; // Optional: preset address or contract address to resolve beneficiaries
 }
 
+library RelationRuleLib {
+    function pack(RelationRule memory r) internal pure returns (bytes32) {
+        return bytes32(
+            (uint256(uint8(r.version))) | (uint256(uint8(r.relateShift)) << 8) | (uint256(uint8(r.terminator)) << 16)
+                | (uint256(uint8(r.unrelateShift)) << 24) | (uint256(r.unrelateDelay) << 32)
+                | (uint256(uint160(r.extra)) << 96)
+        );
+    }
+
+    function unpack(bytes32 b) internal pure returns (RelationRule memory r) {
+        uint256 x = uint256(b);
+        r.version = uint8(x);
+        r.relateShift = RelationOwnerShift(uint8(x >> 8));
+        r.terminator = RelationTerminator(uint8(x >> 16));
+        r.unrelateShift = RelationOwnerShift(uint8(x >> 24));
+        r.unrelateDelay = uint64(x >> 32);
+        r.extra = bytes20(uint160(x >> 96));
+    }
+}
+
+library AdjacencyLib {
+    /// Pack one Adjacency into 64 bits: [degs:16 | kind:48]
+    function encode(Adjacency memory a) private pure returns (uint64) {
+        return (uint64(a.degs) << 48) | uint64(a.kind);
+    }
+
+    /// @notice Packs up to 4 adjacencies (starting at `offset`) into a bytes32.
+    /// Missing slots are treated as zero.
+    function packQuad(Adjacency[] memory adjs, uint256 offset) internal pure returns (bytes32 out) {
+        uint256 x;
+        if (offset < adjs.length) x |= uint256(encode(adjs[offset])) << 192;
+        if (offset + 1 < adjs.length) x |= uint256(encode(adjs[offset + 1])) << 128;
+        if (offset + 2 < adjs.length) x |= uint256(encode(adjs[offset + 2])) << 64;
+        if (offset + 3 < adjs.length) x |= uint256(encode(adjs[offset + 3]));
+        out = bytes32(x);
+    }
+}
+
 library RelationLib {
+    /// @notice Data for Delegate-based authorization
+    struct RelationInitiatorDataPreset {
+        uint96 padding;
+        address delegateAddr; // Authorized address allowed to initiate the relation
+    }
+
+    /// @notice Data for Verified-based authorization
+    struct RelationInitiatorDataEligible {
+        uint96 padding;
+        address contractAddr; // Address of the rule-verifying contract
+    }
+
     /// @notice Data for Holder-based authorization
     struct RelationInitiatorDataHolder {
-        uint64 set; // The set ID for objects, 0 for values/uniques
-        uint64 id; // The id/index for uniques/objects, 0 for values
-        uint128 amount; // The requried amount for values, 1 for uniques/objects
-    }
-
-    /// @notice Pack a preset delegate address into bytes32
-    function packPresetData(address delegate) internal pure returns (bytes32) {
-        return bytes32(uint256(uint160(delegate)));
-    }
-
-    /// @notice Pack an eligible contract address into bytes32
-    function packEligibleData(address contract_) internal pure returns (bytes32) {
-        return bytes32(uint256(uint160(contract_)));
-    }
-
-    /// @notice Pack a value token holder spec (value index + amount) into bytes32
-    function packValueHolderData(uint64 index, uint128 amount) internal pure returns (bytes32) {
-        return bytes32((uint256(index) << 128) | uint256(amount));
-    }
-
-    /// @notice Pack a unique token holder spec (unique index + amount=1) into bytes32
-    function packUniqueHolderData(uint64 index, uint128 amount) internal pure returns (bytes32) {
-        return packValueHolderData(index, amount);
-    }
-
-    /// @notice Pack an object token holder spec (set + id + amount=1) into bytes32
-    function packObjectHolderData(uint64 set, uint64 id) internal pure returns (bytes32) {
-        return bytes32((uint256(set) << 192) | (uint256(id) << 128) | uint256(1));
+        TokenType tokenType; // Value, Unique, or Object
+        uint8 padding;
+        uint48 tokenSet; // The set ID of the token
+        uint64 tokenId; // The token ID of uniques or objects, 0 for values
+        uint128 tokenAmount; // The requried amount of values, 1 for uniques or objects
     }
 }

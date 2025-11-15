@@ -46,9 +46,10 @@ library UniqueRefLib {
     }
 
     function pack(UniqueRef memory ref) internal pure returns (bytes32) {
-        return bytes32(
-            (uint256(ref.rev) << 240) | (uint256(ref.tok) << 192) | (uint256(ref.id) << 128) | uint256(ref.amount)
-        );
+        return
+            bytes32(
+                (uint256(ref.rev) << 240) | (uint256(ref.tok) << 192) | (uint256(ref.id) << 128) | uint256(ref.amount)
+            );
     }
 
     function unpack(bytes32 packed) internal pure returns (UniqueRef memory ref) {

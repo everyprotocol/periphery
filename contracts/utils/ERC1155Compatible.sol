@@ -59,14 +59,16 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
         uint256[] memory amounts,
         bytes memory data
     ) public {
-        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwnerNorApproved();
+        if (from != msg.sender && !isApprovedForAll(from, msg.sender)) {
+            revert NotOwnerNorApproved();
+        }
         _safeBatchTransferFrom(from, to, ids, amounts, data);
     }
 
     /// @inheritdoc IERC1155MetadataURI
     function uri(uint256 id) public view override returns (string memory) {
         uint64 id64 = uint64(id);
-        Descriptor memory od = _decriptor(id64, 0);
+        Descriptor memory od = _descriptor(id64, 0);
         return _tokenURI(id64, od.rev);
     }
 
@@ -83,11 +85,12 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
     function _safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) internal {
         if (to == address(0)) revert ZeroAddress();
         if (amount != 1) revert InvalidTransferAmount();
-        if (_owner(uint64(id)) != from) revert TransferFromIncorrectOwner();
+        uint64 id64 = uint64(id);
+        if (_owner(id64) != from) revert TransferFromIncorrectOwner();
 
         data; // Unused
-        _transfer(uint64(id), to);
-        _postTransfer(uint64(id), from, to);
+        _transfer(id64, to);
+        _postTransfer(id64, _descriptor(id64, 0), from, to);
     }
 
     function _safeBatchTransferFrom(
@@ -107,7 +110,7 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
             uint64 id = uint64(ids[i]);
             if (_owner(id) != from) revert TransferFromIncorrectOwner();
             _transfer(id, to);
-            emit Transferred(id, from, to);
+            emit Transferred(id, _descriptor(id, 0), from, to);
         }
         emit TransferBatch(operator, from, to, ids, amounts);
     }
@@ -157,9 +160,9 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
         emit URI(_tokenURI(id, od.rev), id);
     }
 
-    function _postTransfer(uint64 id, address from, address to) internal virtual override {
+    function _postTransfer(uint64 id, Descriptor memory od, address from, address to) internal virtual override {
         // Set events
-        emit Transferred(id, from, to);
+        emit Transferred(id, od, from, to);
         // ERC1155 events
         emit TransferSingle(msg.sender, from, to, id, 1);
     }

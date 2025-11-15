@@ -7,7 +7,6 @@ import {Descriptor, ERC1155Compatible, ISet} from "@everyprotocol/periphery/util
 import {IObjectMinter, ObjectMinterAdmin} from "@everyprotocol/periphery/utils/ObjectMinterAdmin.sol";
 import {IObjectMinterHook, ObjectMinterHook, SetContext} from "@everyprotocol/periphery/utils/ObjectMinterHook.sol";
 import {ISetRegistry, SetRegistryAdmin} from "@everyprotocol/periphery/utils/SetRegistryAdmin.sol";
-import {ISetRegistryHook, SetRegistryHook} from "@everyprotocol/periphery/utils/SetRegistryHook.sol";
 
 contract MySet1155Minter is MySet1155, ObjectMinterHook, ObjectMinterAdmin {
     constructor(address setRegistry, address objectMinter, uint64 kindId, uint32 kindRev)

@@ -39,9 +39,10 @@ interface ISet is IERC165 {
 
     /// @notice Emitted when ownership is transferred
     /// @param id Object ID
+    /// @param od Descriptor after the transfer
     /// @param from Previous owner
     /// @param to New owner
-    event Transferred(uint64 id, address from, address to);
+    event Transferred(uint64 id, Descriptor od, address from, address to);
 
     // --- Write Methods ---
 

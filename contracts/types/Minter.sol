@@ -25,7 +25,6 @@ enum MintPolicyStatus {
     None, // Uninitialized
     Enabled, // Active
     Disabled // Exists but cannot be used
-
 }
 
 ///@notice Access modes used to restrict who can mint
@@ -33,7 +32,6 @@ enum MintPermissionType {
     Public, // Open to all, no proof required
     Allowlist, // Merkle proof of address required
     AllowTable // Merkle proof of (address, price, limit) required
-
 }
 
 /**

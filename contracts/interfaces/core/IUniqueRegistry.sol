@@ -37,9 +37,10 @@ interface IUniqueRegistry {
 
     /// @notice Emitted when ownership of a unique is transferred
     /// @param id Unique ID
+    /// @param desc Descriptor after the transfer
     /// @param from Previous owner's address
     /// @param to New owner's address
-    event UniqueTransferred(uint64 id, address from, address to);
+    event UniqueTransferred(uint64 id, Descriptor desc, address from, address to);
 
     // --- Write Methods ---
 

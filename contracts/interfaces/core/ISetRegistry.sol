@@ -95,10 +95,7 @@ interface ISetRegistry {
     /// @param rev0 Revision to query (0 = latest)
     /// @return desc Descriptor at the revision
     /// @return elems Packed element list
-    function setSnapshot(uint64 id, uint32 rev0)
-        external
-        view
-        returns (Descriptor memory desc, bytes32[] memory elems);
+    function setSnapshot(uint64 id, uint32 rev0) external view returns (Descriptor memory desc, bytes32[] memory elems);
 
     /// @notice Returns the current owner of a set
     /// @param id Set ID

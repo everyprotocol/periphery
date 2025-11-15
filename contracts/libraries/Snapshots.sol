@@ -100,8 +100,8 @@ library Snapshots {
 
         Revision memory prev = $.revisions[_makeRevisionKey(id, status.latest)];
         Descriptor memory desc = prev.desc;
-        if (kindRev < desc.kindRev) revert InvalidKindRevision();
-        if (setRev < desc.setRev) revert InvalidSetRevision();
+        if (kindRev > 0 && kindRev < desc.kindRev) revert InvalidKindRevision();
+        if (setRev > 0 && setRev < desc.setRev) revert InvalidSetRevision();
 
         // new meta
         desc.kindRev = kindRev;

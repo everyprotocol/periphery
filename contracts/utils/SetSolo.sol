@@ -79,7 +79,7 @@ abstract contract SetSolo is ISet {
     /// @inheritdoc ISet
     function transfer(uint64 id, address to) external virtual override onlyObjectOwner(id) {
         address from = _transfer(id, to);
-        _postTransfer(id, from, to);
+        _postTransfer(id, _descriptor(id, 0), from, to);
     }
 
     /// @inheritdoc ISet
@@ -94,7 +94,7 @@ abstract contract SetSolo is ISet {
 
     /// @inheritdoc ISet
     function descriptor(uint64 id, uint32 rev0) external view override returns (Descriptor memory od) {
-        od = _decriptor(id, rev0);
+        od = _descriptor(id, rev0);
     }
 
     /// @inheritdoc ISet
@@ -134,10 +134,7 @@ abstract contract SetSolo is ISet {
         return od;
     }
 
-    function _create1(address to, uint64 id, Descriptor memory od, bytes32 elem0)
-        internal
-        returns (Descriptor memory)
-    {
+    function _create1(address to, uint64 id, Descriptor memory od, bytes32 elem0) internal returns (Descriptor memory) {
         if (id == 0 || id >= ID_MAX) revert InvalidObjectId();
         if (_objects[id].desc.rev != 0) revert ObjectAlreadyExists();
         bytes32[] memory elems = new bytes32[](1);
@@ -155,7 +152,7 @@ abstract contract SetSolo is ISet {
         bytes32[] memory elems = new bytes32[](2);
         elems[0] = elem0;
         elems[1] = elem1;
-        _objects[id] = ObjectData(od, to, elems);
+        _objects[id] = ObjectData({desc: od, owner: to, elements: elems});
         return od;
     }
 
@@ -200,7 +197,7 @@ abstract contract SetSolo is ISet {
         return obj.owner;
     }
 
-    function _decriptor(uint64 id, uint32 rev0) internal view returns (Descriptor memory) {
+    function _descriptor(uint64 id, uint32 rev0) internal view returns (Descriptor memory) {
         Descriptor memory od = _objects[id].desc;
         if (od.rev == 0) revert ObjectNotFound();
         if (rev0 != 0 && rev0 != od.rev) revert RevisionNotStored();
@@ -231,8 +228,8 @@ abstract contract SetSolo is ISet {
         emit Touched(id, od);
     }
 
-    function _postTransfer(uint64 id, address from, address to) internal virtual {
-        emit Transferred(id, from, to);
+    function _postTransfer(uint64 id, Descriptor memory od, address from, address to) internal virtual {
+        emit Transferred(id, od, from, to);
     }
 
     function _onUpgradeKind(uint64 kindId, uint32 kindRev0) internal view virtual returns (uint32) {

@@ -27,6 +27,13 @@ interface IRelationRegistry {
     /// @param data New data hash
     event RelationUpdated(uint64 id, Descriptor desc, bytes32 data);
 
+    /// @notice Emitted when a relation is updated
+    /// @param id ID of the relation
+    /// @param desc Updated descriptor
+    /// @param adjs List of admitted tail kinds and degree constraints
+    /// @param data New data hash
+    event RelationUpdated(uint64 id, Descriptor desc, bytes32 data, Adjacency[] adjs);
+
     /// @notice Emitted when a relation is upgraded (kind/set revision bumped)
     /// @param id ID of the relation
     /// @param desc Descriptor after upgrade
@@ -39,9 +46,10 @@ interface IRelationRegistry {
 
     /// @notice Emitted when ownership of a relation is transferred
     /// @param id ID of the relation
+    /// @param desc Descriptor after the transfer
     /// @param from Previous owner
     /// @param to New owner
-    event RelationTransferred(uint64 id, address from, address to);
+    event RelationTransferred(uint64 id, Descriptor desc, address from, address to);
 
     // --- Write Methods ---
 
@@ -67,9 +75,7 @@ interface IRelationRegistry {
     /// @param data New data hash
     /// @param adjs New array of adjacency rules
     /// @return desc Updated descriptor
-    function relationUpdate(uint64 id, bytes32 data, Adjacency[] memory adjs)
-        external
-        returns (Descriptor memory desc);
+    function relationUpdate(uint64 id, bytes32 data, Adjacency[] memory adjs) external returns (Descriptor memory desc);
 
     /// @notice Upgrades the kind or set revision of a relation
     /// @param id Relation ID
