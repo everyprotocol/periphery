@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {ObjectMinterAdmin} from "../utils/ObjectMinterAdmin.sol";
-import {ObjectMinterHook} from "../utils/ObjectMinterHook.sol";
 import {SetConnected} from "./SetConnected.sol";
+import {ObjectMinterAdmin} from "./utils/ObjectMinterAdmin.sol";
+import {ObjectMinterHook} from "./utils/ObjectMinterHook.sol";
 
 abstract contract SetConnectedMintable is SetConnected, ObjectMinterHook, ObjectMinterAdmin {
     // forge-lint: disable-next-line(mixed-case-function)

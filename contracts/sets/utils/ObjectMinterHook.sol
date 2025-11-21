@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IERC165, IObjectMinterHook} from "../interfaces/user/IObjectMinterHook.sol";
+import {IERC165, IObjectMinterHook} from "../../interfaces/user/IObjectMinterHook.sol";
 import {ZeroObjectMinter} from "./Errors.sol";
 import {SetComposable} from "./SetComposable.sol";
 

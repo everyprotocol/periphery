@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IObjectMinter, MintPolicy} from "../interfaces/core/IObjectMinter.sol";
+import {IObjectMinter, MintPolicy} from "../../interfaces/core/IObjectMinter.sol";
 import {ZeroObjectMinter} from "./Errors.sol";
 import {SetComposable} from "./SetComposable.sol";
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor, KindRegistryClient, Set1155Linked} from "@everyprotocol/periphery/sets/Set1155Linked.sol";
-import {SetComposable} from "@everyprotocol/periphery/utils/SetComposable.sol";
+import {SetComposable} from "@everyprotocol/periphery/sets/utils/SetComposable.sol";
 
 contract MySet1155 is Set1155Linked {
     error ZeroKindId();

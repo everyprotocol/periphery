@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {IKindRegistry} from "../interfaces/Core/IKindRegistry.sol";
-import {ISoke} from "../interfaces/ISoke.sol";
+import {IKindRegistry} from "../../interfaces/Core/IKindRegistry.sol";
+import {ISoke} from "../../interfaces/ISoke.sol";
 import {ZeroKindRegistry, ZeroSetRegistry} from "./Errors.sol";
 import {SetComposable} from "./SetComposable.sol";
 

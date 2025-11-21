@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {ObjectInteractionHook} from "../utils/ObjectInteractionHook.sol";
 import {SetLinked} from "./SetLinked.sol";
+import {ObjectInteractionHook} from "./utils/ObjectInteractionHook.sol";
 
 abstract contract SetConnected is SetLinked, ObjectInteractionHook {
     // forge-lint: disable-next-line(mixed-case-function)

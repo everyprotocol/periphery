@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {ISoke} from "../interfaces/ISoke.sol";
-import {Descriptor, IERC165, IObjectInteractionHook} from "../interfaces/user/IObjectInteractionHook.sol";
+import {ISoke} from "../../interfaces/ISoke.sol";
+import {Descriptor, IERC165, IObjectInteractionHook} from "../../interfaces/user/IObjectInteractionHook.sol";
 import {ZeroOmniRegistry, ZeroSetRegistry} from "./Errors.sol";
 import {SetComposable} from "./SetComposable.sol";
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {Descriptor, IERC165, ISetRegistryHook} from "../interfaces/user/ISetRegistryHook.sol";
+import {Descriptor, IERC165, ISetRegistryHook} from "../../interfaces/user/ISetRegistryHook.sol";
 import {ZeroSetRegistry} from "./Errors.sol";
 import {SetComposable} from "./SetComposable.sol";
 

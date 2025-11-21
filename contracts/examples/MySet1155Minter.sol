@@ -2,9 +2,9 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor, KindRegistryClient, Set1155Linked} from "@everyprotocol/periphery/sets/Set1155Linked.sol";
-import {ObjectMinterAdmin} from "@everyprotocol/periphery/utils/ObjectMinterAdmin.sol";
-import {ObjectMinterHook} from "@everyprotocol/periphery/utils/ObjectMinterHook.sol";
-import {SetComposable} from "@everyprotocol/periphery/utils/SetComposable.sol";
+import {ObjectMinterAdmin} from "@everyprotocol/periphery/sets/utils/ObjectMinterAdmin.sol";
+import {ObjectMinterHook} from "@everyprotocol/periphery/sets/utils/ObjectMinterHook.sol";
+import {SetComposable} from "@everyprotocol/periphery/sets/utils/SetComposable.sol";
 
 contract MySet1155Minter is Set1155Linked, ObjectMinterHook, ObjectMinterAdmin {
     error ZeroKindId();

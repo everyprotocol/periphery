@@ -2,12 +2,12 @@
 pragma solidity ^0.8.28;
 
 import {ISetRegistry} from "../interfaces/core/ISetRegistry.sol";
-import {ZeroSetRegistry} from "../utils/Errors.sol";
-import {KindRegistryClient} from "../utils/KindRegistryClient.sol";
-import {SetComposable} from "../utils/SetComposable.sol";
-import {SetRegistryAdmin} from "../utils/SetRegistryAdmin.sol";
-import {SetRegistryHook} from "../utils/SetRegistryHook.sol";
 import {Descriptor, Set1155Solo} from "./Set1155Solo.sol"; // forge-lint: disable-line(unused-import)
+import {ZeroSetRegistry} from "./utils/Errors.sol";
+import {KindRegistryClient} from "./utils/KindRegistryClient.sol";
+import {SetComposable} from "./utils/SetComposable.sol";
+import {SetRegistryAdmin} from "./utils/SetRegistryAdmin.sol";
+import {SetRegistryHook} from "./utils/SetRegistryHook.sol";
 
 abstract contract Set1155Linked is Set1155Solo, SetRegistryHook, SetRegistryAdmin, KindRegistryClient {
     error ZeroSetId();
