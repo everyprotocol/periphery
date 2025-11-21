@@ -41,23 +41,22 @@ interface ISetRegistry {
     function setRegister(bytes32 data) external returns (uint64 id, Descriptor memory desc);
 
     /// @notice Updates the data hash of an existing set
+    /// @param id ID of the set
     /// @param data New data hash
-    /// @return id ID of the updated set
     /// @return desc Updated descriptor
-    function setUpdate(bytes32 data) external returns (uint64 id, Descriptor memory desc);
+    function setUpdate(uint64 id, bytes32 data) external returns (Descriptor memory desc);
 
     /// @notice Upgrades the kind or set revision
+    /// @param id ID of the set
     /// @param kindRev New kind revision (0 to skip)
     /// @param setRev New set revision (0 to skip)
-    /// @return id ID of the set
     /// @return desc Descriptor after upgrade
-    function setUpgrade(uint32 kindRev, uint32 setRev) external returns (uint64 id, Descriptor memory desc);
+    function setUpgrade(uint64 id, uint32 kindRev, uint32 setRev) external returns (Descriptor memory desc);
 
     /// @notice Touches a set (increments revision without any changes)
     /// @param id ID of the set
-    /// @return id ID of the set
     /// @return desc Descriptor after touch
-    function setTouch() external returns (uint64 id, Descriptor memory desc);
+    function setTouch(uint64 id) external returns (Descriptor memory desc);
 
     // --- Read Methods ---
 
