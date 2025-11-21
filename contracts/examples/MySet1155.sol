@@ -1,68 +1,35 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.28;
 
-import {ObjectIdAuto} from "@everyprotocol/periphery/libraries/Allocator.sol";
-import {Descriptor, ERC1155Compatible, ISet} from "@everyprotocol/periphery/utils/ERC1155Compatible.sol";
-import {ISetRegistry, SetRegistryAdmin} from "@everyprotocol/periphery/utils/SetRegistryAdmin.sol";
-import {ISetRegistryHook, SetContext, SetRegistryHook} from "@everyprotocol/periphery/utils/SetRegistryHook.sol";
+import {Descriptor, KindRegistryClient, Set1155Linked} from "@everyprotocol/periphery/sets/Set1155Linked.sol";
+import {SetComposable} from "@everyprotocol/periphery/utils/SetComposable.sol";
 
-contract MySet1155 is ERC1155Compatible, SetRegistryHook, SetRegistryAdmin {
-    error KindRevNotSpecified();
+contract MySet1155 is Set1155Linked {
+    error ZeroKindId();
+    error KindRevUnavailable();
+    error ObjectIdAutoOnly();
 
-    ObjectIdAuto.Storage internal _idAllocator;
+    uint64 _minted;
+    uint64 _kindId;
+    uint32 _kindRev;
 
-    constructor(address setRegistry, uint64 kindId, uint32 kindRev) SetRegistryHook(setRegistry) {
-        if (kindRev == 0) revert KindRevNotSpecified();
-        SetContext.setKindId(kindId);
-        SetContext.setKindRev(kindRev);
+    constructor(address setRegistry, uint64 kindId, uint32 kindRev0) {
+        _SetLinked_initializeFrom(setRegistry);
+
+        uint32 kindRev = KindRegistryClient.checkKindRevision(kindId, kindRev0);
+        if (kindRev == 0) revert KindRevUnavailable();
+
+        _kindId = kindId;
+        _kindRev = kindRev;
     }
 
-    function create(address to, uint64 id0, bytes calldata data)
-        external
-        override
-        returns (uint64 id, Descriptor memory od)
-    {
+    function mint(address to, uint64 id0, bytes calldata data) external returns (uint64 id, Descriptor memory od) {
+        if (id0 != 0) revert ObjectIdAutoOnly();
+        id = ++_minted;
         bytes32[] memory elems = abi.decode(data, (bytes32[]));
-        id = ObjectIdAuto.allocate(_idAllocator, id0);
-        od = Descriptor(
-            0, 1, SetContext.getSetRev(), SetContext.getSetRev(), SetContext.getKindId(), SetContext.getSetId()
-        );
+        (uint64 setId, uint32 setRev) = SetComposable.getSetIdRev();
+        od = Descriptor({traits: 0, rev: 1, kindRev: _kindRev, setRev: setRev, setId: setId, kindId: _kindId});
         _create(to, id, od, elems);
         _postCreate(to, id, od, elems);
-    }
-
-    function update(uint64 id, bytes calldata data) external override returns (Descriptor memory od) {
-        bytes32[] memory elems = abi.decode(data, (bytes32[]));
-        od = _update(id, elems);
-        _postUpdate(id, od, elems);
-    }
-
-    function supportsInterface(bytes4 interfaceId)
-        external
-        pure
-        virtual
-        override(ERC1155Compatible, SetRegistryHook)
-        returns (bool)
-    {
-        return _supportsInterface(interfaceId);
-    }
-
-    function _supportsInterface(bytes4 interfaceId) internal pure virtual override returns (bool) {
-        return (interfaceId == type(ISetRegistryHook).interfaceId) || ERC1155Compatible._supportsInterface(interfaceId);
-    }
-
-    function _objectURI() internal view virtual override returns (string memory) {
-        ISetRegistry setr = ISetRegistry(SetContext.getSetRegistry());
-        return setr.setURI(SetContext.getSetId());
-    }
-
-    function _tokenURI(uint64 id, uint32 rev) internal view virtual override returns (string memory) {
-        ISetRegistry setr = ISetRegistry(SetContext.getSetRegistry());
-        return setr.setURI(SetContext.getSetId(), id, rev);
-    }
-
-    function _contractURI() internal view virtual override returns (string memory) {
-        ISetRegistry setr = ISetRegistry(SetContext.getSetRegistry());
-        return setr.setURI(1, SetContext.getSetId(), SetContext.getSetRev());
     }
 }

@@ -3,12 +3,9 @@ pragma solidity ^0.8.28;
 
 import {IERC1155, IERC1155MetadataURI} from "../interfaces/external/IERC1155MetadataURI.sol";
 import {IERC7572} from "../interfaces/external/IERC7572.sol";
-import {Descriptor, IERC165, ISet, SetSolo} from "./SetSolo.sol";
+import {Descriptor, IERC165, SetSolo} from "./SetSolo.sol";
 
-/// @title ERC1155Compatible
-/// @notice A minimal ERC-1155 wrapper for object tokens in a Set, where each object has a quantity of exactly 1.
-/// @dev Extends SetSolo and conforms to IERC1155, IERC1155MetadataURI, and IERC7572.
-abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, IERC7572 {
+abstract contract Set1155Solo is SetSolo, IERC1155, IERC1155MetadataURI, IERC7572 {
     error InvalidTransferAmount();
     error TransferFromIncorrectOwner();
     error LengthMismatch();
@@ -47,7 +44,6 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
     /// @inheritdoc IERC1155
     function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) public {
         if (from != msg.sender && !isApprovedForAll(from, msg.sender)) revert NotOwnerNorApproved();
-
         _safeTransferFrom(from, to, id, amount, data);
     }
 
@@ -67,6 +63,7 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
 
     /// @inheritdoc IERC1155MetadataURI
     function uri(uint256 id) public view override returns (string memory) {
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint64 id64 = uint64(id);
         Descriptor memory od = _descriptor(id64, 0);
         return _tokenURI(id64, od.rev);
@@ -78,13 +75,14 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 interfaceId) external pure virtual override(IERC165, SetSolo) returns (bool) {
-        return _supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) external pure virtual override(SetSolo, IERC165) returns (bool) {
+        return _Set1155Solo_supportsInterface(interfaceId);
     }
 
     function _safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) internal {
         if (to == address(0)) revert ZeroAddress();
         if (amount != 1) revert InvalidTransferAmount();
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint64 id64 = uint64(id);
         if (_owner(id64) != from) revert TransferFromIncorrectOwner();
 
@@ -123,6 +121,7 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
     }
 
     function _balanceOf(address account, uint256 id) internal view returns (uint256) {
+        // forge-lint: disable-next-line(unsafe-typecast)
         return _owner(uint64(id)) == account ? 1 : 0;
     }
 
@@ -167,13 +166,15 @@ abstract contract ERC1155Compatible is SetSolo, IERC1155, IERC1155MetadataURI, I
         emit TransferSingle(msg.sender, from, to, id, 1);
     }
 
-    function _supportsInterface(bytes4 interfaceId) internal pure virtual override returns (bool) {
-        return interfaceId == type(IERC165).interfaceId || interfaceId == type(ISet).interfaceId
-            || interfaceId == type(IERC1155).interfaceId || interfaceId == type(IERC1155MetadataURI).interfaceId
-            || interfaceId == type(IERC7572).interfaceId;
+    // forge-lint: disable-next-line(mixed-case-function)
+    function _Set1155Solo_supportsInterface(bytes4 interfaceId) internal pure returns (bool) {
+        return interfaceId == type(IERC1155).interfaceId || interfaceId == type(IERC1155MetadataURI).interfaceId
+            || interfaceId == type(IERC7572).interfaceId || _SetSolo_supportsInterface(interfaceId);
     }
 
+    // forge-lint: disable-next-line(mixed-case-function)
     function _tokenURI(uint64 id, uint32 rev) internal view virtual returns (string memory);
 
+    // forge-lint: disable-next-line(mixed-case-function)
     function _contractURI() internal view virtual returns (string memory);
 }

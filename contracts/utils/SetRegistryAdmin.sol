@@ -2,7 +2,8 @@
 pragma solidity ^0.8.28;
 
 import {Descriptor, ISetRegistry} from "../interfaces/core/ISetRegistry.sol";
-import {SetContext} from "./SetContext.sol";
+import {ZeroSetRegistry} from "./Errors.sol";
+import {SetComposable} from "./SetComposable.sol";
 
 /// @title SetRegistryAdmin
 /// @notice Helper for managing privileged registration and upgrade operations with the SetRegistry.
@@ -42,7 +43,9 @@ abstract contract SetRegistryAdmin {
         return _setRegistry().setTouch();
     }
 
-    function _setRegistry() private view returns (ISetRegistry) {
-        return ISetRegistry(SetContext.getSetRegistry());
+    function _setRegistry() private pure returns (ISetRegistry) {
+        address addr = SetComposable.getSetRegistry();
+        if (addr == address(0)) revert ZeroSetRegistry();
+        return ISetRegistry(addr);
     }
 }

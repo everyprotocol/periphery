@@ -2,24 +2,25 @@
 pragma solidity ^0.8.28;
 
 import {IERC165, IObjectMinterHook} from "../interfaces/user/IObjectMinterHook.sol";
-import {SetContext} from "./SetContext.sol";
+import {ZeroObjectMinter} from "./Errors.sol";
+import {SetComposable} from "./SetComposable.sol";
 
 /// @title ObjectMinterHook
 /// @notice Base contract for integrating with an external ObjectMinter.
 /// @dev Implements the IObjectMinterHook interface and enforces that only the configured ObjectMinter
 ///      can trigger the minting logic. Inheriting contracts must implement `_mint(...)`.
 abstract contract ObjectMinterHook is IObjectMinterHook {
-    error CallerNotObjectMinter();
+    error NotObjectMinter();
 
-    /// @notice Initializes the contract with the configured ObjectMinter address.
-    /// @param minter The address of the ObjectMinter.
-    constructor(address minter) {
-        SetContext.setObjectMinter(minter);
+    // forge-lint: disable-next-line(mixed-case-function)
+    function _ObjectMinterHook_initialize(address objectMinter) internal {
+        if (objectMinter == address(0)) revert ZeroObjectMinter();
+        SetComposable.putObjectMinter(objectMinter);
     }
 
     /// @dev Restricts function to be called only by the configured ObjectMinter.
     modifier onlyObjectMinter() {
-        if (msg.sender != SetContext.getObjectMinter()) revert CallerNotObjectMinter();
+        _onlyObjectMinter();
         _;
     }
 
@@ -36,6 +37,15 @@ abstract contract ObjectMinterHook is IObjectMinterHook {
 
     /// @inheritdoc IERC165
     function supportsInterface(bytes4 interfaceId) external pure virtual override returns (bool supported) {
+        return _ObjectMinterHook_supportsInterface(interfaceId);
+    }
+
+    function _onlyObjectMinter() internal view {
+        if (msg.sender != SetComposable.getObjectMinter()) revert NotObjectMinter();
+    }
+
+    // forge-lint: disable-next-line(mixed-case-function)
+    function _ObjectMinterHook_supportsInterface(bytes4 interfaceId) internal pure returns (bool supported) {
         return interfaceId == type(IObjectMinterHook).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 

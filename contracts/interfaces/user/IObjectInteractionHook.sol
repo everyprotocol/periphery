@@ -4,11 +4,11 @@ pragma solidity ^0.8.28;
 import {Descriptor} from "../../types/Descriptor.sol";
 import {IERC165} from "../external/IERC165.sol";
 
-/// @title IInteroperable
+/// @title IObjectInteractionHook
 /// @notice Interface for set contracts that support object-level interoperability
 /// @dev Enables a set to respond to interactions involving its objects. These hooks are called *before* the action is finalized.
 /// Returning the expected value is required for the operation to proceed.
-interface IInteroperable is IERC165 {
+interface IObjectInteractionHook is IERC165 {
     /// @notice Hook called before an object from this set is linked to another object
     /// @param id Object ID from this set (acts as the head)
     /// @param rel Relation ID

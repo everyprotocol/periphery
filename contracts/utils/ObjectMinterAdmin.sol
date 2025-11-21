@@ -2,7 +2,8 @@
 pragma solidity ^0.8.28;
 
 import {IObjectMinter, MintPolicy} from "../interfaces/core/IObjectMinter.sol";
-import {SetContext} from "./SetContext.sol";
+import {ZeroObjectMinter} from "./Errors.sol";
+import {SetComposable} from "./SetComposable.sol";
 
 /// @title ObjectMinterAdmin
 /// @notice Provides helper functions for managing minting policies via an external ObjectMinter.
@@ -31,7 +32,9 @@ abstract contract ObjectMinterAdmin {
         _objectMinter().mintPolicyEnable(index);
     }
 
-    function _objectMinter() private view returns (IObjectMinter) {
-        return IObjectMinter(SetContext.getObjectMinter());
+    function _objectMinter() private pure returns (IObjectMinter) {
+        address addr = SetComposable.getObjectMinter();
+        if (addr == address(0)) revert ZeroObjectMinter();
+        return IObjectMinter(addr);
     }
 }

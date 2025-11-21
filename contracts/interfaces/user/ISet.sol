@@ -46,26 +46,12 @@ interface ISet is IERC165 {
 
     // --- Write Methods ---
 
-    /// @notice Create (mint) a new object
-    /// @param to Initial owner of the object
-    /// @param id0 Requested object ID (0 = auto-assign)
-    /// @param data Encoded creation parameters
-    /// @return id Final resolved object ID
-    /// @return od Descriptor of the newly created object
-    function create(address to, uint64 id0, bytes calldata data) external returns (uint64 id, Descriptor memory od);
-
-    /// @notice Update an existing object
-    /// @param id Object ID to update
-    /// @param data Encoded update parameters
-    /// @return od Descriptor after the update
-    function update(uint64 id, bytes calldata data) external returns (Descriptor memory od);
-
     /// @notice Upgrade an object to a new kind or set revision
     /// @param id Object ID
-    /// @param kindRev0 New kind revision (0 = no change)
-    /// @param setRev0 New set revision (0 = no change)
+    /// @param krev0 New kind revision (0 = no change)
+    /// @param srev0 New set revision (0 = no change)
     /// @return od Descriptor after upgrade
-    function upgrade(uint64 id, uint32 kindRev0, uint32 setRev0) external returns (Descriptor memory od);
+    function upgrade(uint64 id, uint32 krev0, uint32 srev0) external returns (Descriptor memory od);
 
     /// @notice Touch an object to increment revision without content change
     /// @param id Object ID
