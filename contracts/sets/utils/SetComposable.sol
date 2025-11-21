@@ -94,28 +94,28 @@ library SetComposable {
         $.setRev = setRev;
     }
 
-    function getSetRegistry() internal pure returns (address) {
-        SetInfoStorage memory $ = getSetInfoStorage();
+    function getSetRegistry() internal view returns (address) {
+        SetInfoStorage storage $ = getSetInfoStorage();
         return $.setRegistry;
     }
 
-    function getSetIdRev() internal pure returns (uint64, uint32) {
-        SetInfoStorage memory $ = getSetInfoStorage();
+    function getSetIdRev() internal view returns (uint64, uint32) {
+        SetInfoStorage storage $ = getSetInfoStorage();
         return ($.setId, $.setRev);
     }
 
-    function getSetId() internal pure returns (uint64) {
-        SetInfoStorage memory $ = getSetInfoStorage();
+    function getSetId() internal view returns (uint64) {
+        SetInfoStorage storage $ = getSetInfoStorage();
         return $.setId;
     }
 
-    function getSetRev() internal pure returns (uint32) {
-        SetInfoStorage memory $ = getSetInfoStorage();
+    function getSetRev() internal view returns (uint32) {
+        SetInfoStorage storage $ = getSetInfoStorage();
         return $.setRev;
     }
 
-    function getSetInfo() internal pure returns (address, uint64, uint32) {
-        SetInfoStorage memory $ = getSetInfoStorage();
+    function getSetInfo() internal view returns (address, uint64, uint32) {
+        SetInfoStorage storage $ = getSetInfoStorage();
         return ($.setRegistry, $.setId, $.setRev);
     }
 
@@ -124,8 +124,8 @@ library SetComposable {
         $.objectMinter = objectMinter;
     }
 
-    function getObjectMinter() internal pure returns (address) {
-        MinterInfoStorage memory $ = getMinterInfoStorage();
+    function getObjectMinter() internal view returns (address) {
+        MinterInfoStorage storage $ = getMinterInfoStorage();
         return $.objectMinter;
     }
 
@@ -134,8 +134,8 @@ library SetComposable {
         $.omniRegistry = omniRegistry;
     }
 
-    function getOmniRegistry() internal pure returns (address) {
-        OmniInfoStorage memory $ = getOmniInfoStorage();
+    function getOmniRegistry() internal view returns (address) {
+        OmniInfoStorage storage $ = getOmniInfoStorage();
         return $.omniRegistry;
     }
 
@@ -144,8 +144,44 @@ library SetComposable {
         $.kindRegistry = kindRegistry;
     }
 
-    function getKindRegistry() internal pure returns (address) {
-        KindInfoStorage memory $ = getKindInfoStorage();
+    function putKindId(uint64 kindId) internal {
+        KindInfoStorage storage $ = getKindInfoStorage();
+        $.kindId = kindId;
+    }
+
+    function putKindRev(uint32 kindRev) internal {
+        KindInfoStorage storage $ = getKindInfoStorage();
+        $.kindRev = kindRev;
+    }
+
+    function putKindIdRev(uint64 kindId, uint32 kindRev) internal {
+        KindInfoStorage storage $ = getKindInfoStorage();
+        $.kindId = kindId;
+        $.kindRev = kindRev;
+    }
+
+    function getKindRegistry() internal view returns (address) {
+        KindInfoStorage storage $ = getKindInfoStorage();
         return $.kindRegistry;
+    }
+
+    function getKindIdRev() internal view returns (uint64, uint32) {
+        KindInfoStorage storage $ = getKindInfoStorage();
+        return ($.kindId, $.kindRev);
+    }
+
+    function getKindId() internal view returns (uint64) {
+        KindInfoStorage storage $ = getKindInfoStorage();
+        return $.kindId;
+    }
+
+    function getKindRev() internal view returns (uint32) {
+        KindInfoStorage storage $ = getKindInfoStorage();
+        return $.kindRev;
+    }
+
+    function getKindInfo() internal view returns (address, uint64, uint32) {
+        KindInfoStorage storage $ = getKindInfoStorage();
+        return ($.kindRegistry, $.kindId, $.kindRev);
     }
 }

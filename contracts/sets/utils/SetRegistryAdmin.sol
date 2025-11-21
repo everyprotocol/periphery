@@ -19,31 +19,31 @@ abstract contract SetRegistryAdmin {
     }
 
     /// @notice Updates the content hash of the set represented by the calling contract.
+    /// @param id Set ID.
     /// @param data New content hash.
-    /// @return id Set ID.
     /// @return od Updated descriptor of the set.
-    function updateSet(bytes32 data) external returns (uint64 id, Descriptor memory od) {
-        return _setRegistry().setUpdate(data);
+    function updateSet(uint64 id, bytes32 data) external returns (Descriptor memory od) {
+        return _setRegistry().setUpdate(id, data);
     }
 
     /// @notice Upgrades the kind or set revision of the calling contract’s set.
     /// @dev Pass 0 to skip updating either kindRev or setRev.
+    /// @param id Set ID.
     /// @param kindRev0 New kind revision (0 = no change).
     /// @param setRev0 New set revision (0 = no change).
-    /// @return id Set ID.
     /// @return od Descriptor after the upgrade.
-    function upgradeSet(uint32 kindRev0, uint32 setRev0) external returns (uint64 id, Descriptor memory od) {
-        return _setRegistry().setUpgrade(kindRev0, setRev0);
+    function upgradeSet(uint64 id, uint32 kindRev0, uint32 setRev0) external returns (Descriptor memory od) {
+        return _setRegistry().setUpgrade(id, kindRev0, setRev0);
     }
 
     /// @notice Increments the revision of the calling contract’s set without changing content.
-    /// @return id Set ID.
+    /// @param id Set ID.
     /// @return od Descriptor after the touch operation.
-    function touchSet() external returns (uint64 id, Descriptor memory od) {
-        return _setRegistry().setTouch();
+    function touchSet(uint64 id) external returns (Descriptor memory od) {
+        return _setRegistry().setTouch(id);
     }
 
-    function _setRegistry() private pure returns (ISetRegistry) {
+    function _setRegistry() private view returns (ISetRegistry) {
         address addr = SetComposable.getSetRegistry();
         if (addr == address(0)) revert ZeroSetRegistry();
         return ISetRegistry(addr);

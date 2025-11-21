@@ -25,6 +25,26 @@ abstract contract SetLinked is SetSolo, SetRegistryHook, SetRegistryAdmin, KindR
         _KindRegistryClient_intializeFrom(setRegistry);
     }
 
+    function getSetRegistry() internal view returns (address) {
+        return SetComposable.getSetRegistry();
+    }
+
+    function getSetIdRev() internal view returns (uint64, uint32) {
+        return SetComposable.getSetIdRev();
+    }
+
+    function getSetId() internal view returns (uint64) {
+        return SetComposable.getSetId();
+    }
+
+    function getSetRev() internal view returns (uint32) {
+        return SetComposable.getSetRev();
+    }
+
+    function checkKindRev(uint64 kindId, uint32 kindRev0) internal view returns (uint32) {
+        return KindRegistryClient.checkKindRevision(kindId, kindRev0);
+    }
+
     function supportsInterface(bytes4 interfaceId)
         external
         pure

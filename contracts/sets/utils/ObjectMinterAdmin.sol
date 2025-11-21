@@ -32,7 +32,7 @@ abstract contract ObjectMinterAdmin {
         _objectMinter().mintPolicyEnable(index);
     }
 
-    function _objectMinter() private pure returns (IObjectMinter) {
+    function _objectMinter() private view returns (IObjectMinter) {
         address addr = SetComposable.getObjectMinter();
         if (addr == address(0)) revert ZeroObjectMinter();
         return IObjectMinter(addr);
