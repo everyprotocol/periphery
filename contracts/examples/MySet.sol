@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {Descriptor, KindRegistryClient, SetLinked} from "@everyprotocol/periphery/sets/SetLinked.sol";
-import {SetComposable} from "@everyprotocol/periphery/sets/utils/SetComposable.sol";
+import {Descriptor, SetLinked} from "@everyprotocol/periphery/sets/SetLinked.sol";
 
 contract MySet is SetLinked {
     error ZeroKindId();
@@ -16,7 +15,7 @@ contract MySet is SetLinked {
     constructor(address setRegistry, uint64 kindId, uint32 kindRev0) {
         _SetLinked_initializeFrom(setRegistry);
 
-        uint32 kindRev = KindRegistryClient.checkKindRevision(kindId, kindRev0);
+        uint32 kindRev = checkKindRevision(kindId, kindRev0);
         if (kindRev == 0) revert KindRevUnavailable();
 
         _kindId = kindId;
@@ -27,7 +26,7 @@ contract MySet is SetLinked {
         if (id0 != 0) revert ObjectIdAutoOnly();
         id = ++_minted;
         bytes32[] memory elems = abi.decode(data, (bytes32[]));
-        (uint64 setId, uint32 setRev) = SetComposable.getSetIdRev();
+        (uint64 setId, uint32 setRev) = getSetIdRev();
         od = Descriptor({traits: 0, rev: 1, kindRev: _kindRev, setRev: setRev, setId: setId, kindId: _kindId});
         _create(to, id, od, elems);
         _postCreate(to, id, od, elems);
